@@ -18,6 +18,8 @@ export type FieldDef = {
   step?: string;
   /** Spans both columns on wide screens. */
   wide?: boolean;
+  /** Textarea height in lines (default 3). */
+  rows?: number;
 };
 
 export type FormState = { ok?: boolean; error?: string; fields?: string[] } | undefined;
@@ -74,7 +76,7 @@ export function FieldsForm({
                   {f.options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               ) : f.type === "textarea" ? (
-                <textarea {...common} defaultValue={String(f.defaultValue ?? "")} rows={3} className="w-full rounded-lg border-2 border-input bg-background p-3 aria-invalid:border-destructive" />
+                <textarea {...common} defaultValue={String(f.defaultValue ?? "")} rows={f.rows ?? 3} className="w-full rounded-lg border-2 border-input bg-background p-3 aria-invalid:border-destructive" />
               ) : (
                 <Input {...common} type={f.type ?? "text"} step={f.step} defaultValue={f.defaultValue == null ? "" : String(f.defaultValue)} autoComplete={f.type === "password" ? "new-password" : "off"} />
               )}

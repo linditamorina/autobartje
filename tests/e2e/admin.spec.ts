@@ -255,9 +255,58 @@ test("accountant flow: invoice the confirmed order, download the PDF, record pay
   expect(csv).toContain("E2E Auto SH.P.K.;811111111");
 });
 
+test("editor changes a page, adds a FAQ answer and publishes an article", async () => {
+  const stamp = Date.now().toString(36);
+
+  // Edit the English About page, then put the original text back
+  await page.goto("/admin/content");
+  await page.getByRole("row", { name: /About us/ }).getByRole("link").nth(1).click();
+  await expect(page).toHaveURL(/slug=about&locale=en/);
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill(`About the crew ${stamp}`);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+  await page.goto("/en/about");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(`About the crew ${stamp}`);
+
+  await page.goto("/admin/content/edit?slug=about&locale=en");
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Reset to original text" }).click();
+  await expect(page.getByText("The original text is shown again.")).toBeVisible();
+  await page.goto("/en/about");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("About us");
+
+  // FAQ answer in English shows on the public page
+  await page.goto("/admin/content?tab=faq&lang=en");
+  const add = page.getByRole("region", { name: "Add a question" }).or(page.locator("section", { has: page.getByRole("heading", { name: "Add a question" }) }));
+  await add.getByLabel("Question").fill(`Do you tow motorbikes ${stamp}?`);
+  await add.getByLabel("Answer").fill(`Yes, on a flatbed with straps (${stamp}).`);
+  await add.getByRole("button", { name: "Add" }).click();
+  await expect(add.getByText("Saved.")).toBeVisible();
+  await page.goto("/en/faq");
+  await page.getByText(`Do you tow motorbikes ${stamp}?`).click();
+  await expect(page.getByText(`Yes, on a flatbed with straps (${stamp}).`)).toBeVisible();
+
+  // Article: a draft stays hidden until it gets a publish time
+  await page.goto("/admin/content/blog/new");
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill(`Winter towing tips ${stamp}`);
+  await page.getByLabel("Web address").fill(`winter-tips-${stamp}`);
+  await page.getByRole("main").getByLabel("Language").selectOption("en");
+  await page.getByLabel("Text (Markdown)").fill("## Before you drive\n\n- Check the battery\n- Carry a blanket");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/admin\/content\/blog\/\w+\?saved=1/);
+  expect((await page.request.get(`/en/blog/winter-tips-${stamp}`)).status()).toBe(404);
+
+  await page.getByLabel("Publish at").fill("2020-01-01T09:00");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved.").first()).toBeVisible();
+  await page.goto(`/en/blog/winter-tips-${stamp}`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(`Winter towing tips ${stamp}`);
+  await expect(page.getByRole("heading", { name: "Before you drive" })).toBeVisible();
+});
+
 test("admin pages fit a 360px phone", async () => {
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/invoices", "/admin/users", "/admin/messages", "/admin/settings", "/admin/audit"]) {
+  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/invoices", "/admin/users", "/admin/messages", "/admin/content", "/admin/content?tab=faq", "/admin/content?tab=areas", "/admin/content/edit?slug=legal/privacy&locale=sq", "/admin/content/blog/new", "/admin/settings", "/admin/audit"]) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} scrolls sideways`).toBeLessThanOrEqual(0);

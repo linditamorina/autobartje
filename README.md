@@ -78,6 +78,13 @@ message fits 160 characters instead of 70. WhatsApp customers get SMS until the 
 lands in phase 2. `/api/cron/daily` sends fleet paperwork reminders (30/7/1/0 days) and deletes data
 past the retention periods set in Settings.
 
+## Website content
+
+- Service pages, the import guide, About and the legal pages ship with ready-made text in Albanian, English and German (`src/content/{sq,en,de}.ts`). Admin → Content edits a page per language; "Reset to original text" drops the edit. `{{company.legalName}}`, `{{contact.email}}` and other setting keys are filled in when the page is shown.
+- FAQ entries, city pages (`/areas/<slug>`) and blog articles live in the database and are managed in the same screen. An article without a publish time is a draft; a future time schedules it.
+- The legal texts are a starting point and should be checked by a lawyer before launch.
+- `sitemap.xml` lists every page in every language with hreflang alternates, plus city pages and published articles. Pages carry breadcrumb, service and FAQ structured data.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
