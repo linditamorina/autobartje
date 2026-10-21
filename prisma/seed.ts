@@ -27,17 +27,18 @@ const HOLIDAYS: [string, string][] = [
   ["2027-05-09", "Dita e Evropës"], ["2027-05-17", "Kurban Bajrami"], ["2027-12-25", "Krishtlindjet katolike"],
 ];
 
-const AREAS: [string, string, number, number][] = [
-  ["peje", "Pejë", 42.6593, 20.2887],
-  ["prishtine", "Prishtinë", 42.6629, 21.1655],
-  ["prizren", "Prizren", 42.2139, 20.7397],
-  ["gjakove", "Gjakovë", 42.3803, 20.4308],
-  ["mitrovice", "Mitrovicë", 42.8914, 20.866],
-  ["ferizaj", "Ferizaj", 42.3702, 21.1553],
-  ["gjilan", "Gjilan", 42.4635, 21.4694],
-  ["istog", "Istog", 42.7808, 20.4875],
-  ["kline", "Klinë", 42.6214, 20.5778],
-  ["decan", "Deçan", 42.5402, 20.2879],
+// slug, Albanian name, international name (en/de), lat, lng
+const AREAS: [string, string, string, number, number][] = [
+  ["peje", "Pejë", "Peja", 42.6593, 20.2887],
+  ["prishtine", "Prishtinë", "Pristina", 42.6629, 21.1655],
+  ["prizren", "Prizren", "Prizren", 42.2139, 20.7397],
+  ["gjakove", "Gjakovë", "Gjakova", 42.3803, 20.4308],
+  ["mitrovice", "Mitrovicë", "Mitrovica", 42.8914, 20.866],
+  ["ferizaj", "Ferizaj", "Ferizaj", 42.3702, 21.1553],
+  ["gjilan", "Gjilan", "Gjilan", 42.4635, 21.4694],
+  ["istog", "Istog", "Istog", 42.7808, 20.4875],
+  ["kline", "Klinë", "Klina", 42.6214, 20.5778],
+  ["decan", "Deçan", "Deçan", 42.5402, 20.2879],
 ];
 
 async function main() {
@@ -80,11 +81,11 @@ async function main() {
   }
 
   // Service areas (city pages)
-  for (const [slug, name, lat, lng] of AREAS) {
+  for (const [slug, sq, intl, lat, lng] of AREAS) {
     await db.serviceArea.upsert({
       where: { slug },
       update: {},
-      create: { slug, name: { sq: name, en: name, de: name }, lat, lng },
+      create: { slug, name: { sq, en: intl, de: intl }, lat, lng },
     });
   }
 
