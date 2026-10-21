@@ -199,6 +199,7 @@ model User {
   passwordHash  String?   // argon2id; null for magic-link-only B2B users
   totpSecret    String?   // encrypted at rest (AES-GCM, key in env)
   totpEnabledAt DateTime?
+  totpLastStep  Int?      // last accepted time step, blocks code replay
   locale        Locale    @default(sq)
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?

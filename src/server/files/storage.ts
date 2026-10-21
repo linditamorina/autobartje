@@ -50,3 +50,22 @@ export async function presignDownload(key: string, expiresIn = 300): Promise<str
 export async function deleteObject(key: string): Promise<void> {
   await s3().send(new DeleteObjectCommand({ Bucket: privateBucket(), Key: key }));
 }
+
+/** Site images (logo) in the public bucket, served from R2_PUBLIC_URL. Keys are unique, so cache forever. */
+export const LOGO_TYPES = { "image/png": "png", "image/webp": "webp", "image/svg+xml": "svg" } as const;
+export const MAX_LOGO_BYTES = 1024 * 1024;
+const publicBucket = () => process.env.R2_PUBLIC_BUCKET ?? "autobartje-public";
+
+export function publicStorageConfigured(): boolean {
+  return storageConfigured() && Boolean(process.env.R2_PUBLIC_URL);
+}
+
+export async function putPublicObject(key: string, body: Uint8Array, contentType: string): Promise<void> {
+  await s3().send(
+    new PutObjectCommand({ Bucket: publicBucket(), Key: key, Body: body, ContentType: contentType, CacheControl: "public, max-age=31536000, immutable" }),
+  );
+}
+
+export async function deletePublicObject(key: string): Promise<void> {
+  await s3().send(new DeleteObjectCommand({ Bucket: publicBucket(), Key: key }));
+}

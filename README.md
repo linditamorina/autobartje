@@ -17,7 +17,7 @@ Google Maps · Cloudflare Turnstile · Sentry · Vitest · Playwright.
 Requirements: Node 22, Docker (or a local PostgreSQL 16).
 
 ```bash
-cp .env.example .env            # fill in at least DATABASE_URL and AUTH_SECRET
+cp .env.example .env            # fill in DATABASE_URL, AUTH_SECRET, DATA_ENCRYPTION_KEY
 docker compose up -d db minio   # Postgres + S3-compatible storage
 npm install                     # also generates the Prisma client
 npx prisma migrate dev          # create tables
@@ -26,7 +26,9 @@ npm run dev                     # http://localhost:3000
 ```
 
 The seed creates the owner account from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. Two-factor
-authentication is required for Owner and Admin and is set up on first login.
+authentication is required for Owner and Admin and is set up on first login at `/admin/login`.
+Generate the secrets with `openssl rand -base64 33` (AUTH_SECRET) and `openssl rand -base64 32` (DATA_ENCRYPTION_KEY,
+which encrypts authenticator secrets at rest; changing it later forces every staff member to set up 2FA again).
 
 ## Scripts
 
@@ -45,7 +47,7 @@ authentication is required for Owner and Admin and is set up on first login.
 prisma/            schema.prisma, migrations, seed.ts
 messages/          UI translations (sq, en, de)
 src/app/[locale]/  public website (localised routes; sq has no URL prefix)
-src/app/admin/     back office (coming in phase 1)
+src/app/admin/     back office: login + 2FA, orders (table/board), manual orders, settings, audit log
 src/app/api/       route handlers: consent log, uploads, webhooks, cron
 src/components/    ui/ primitives, marketing/, shared/
 src/server/        business logic without React: pricing, invoicing, settings, auth, db
@@ -61,6 +63,7 @@ tests/e2e/         Playwright tests
   B2B contract prices and fixed international route tariffs.
 - **Brand name, logo and colour** are settings (`brand.*` in the `Setting` table), editable in admin and
   shown on the site, invoices and emails. Until changed, the built-in logo and the name "autobartje" are used.
+  Logo uploads go to the public R2 bucket, so `R2_PUBLIC_URL` must be set for the upload button to appear.
 - **Privacy**: no analytics or marketing scripts load before cookie consent; "Reject" is as prominent as "Accept";
   each choice is logged in `Consent` with a truncated IP. Retention periods are settings.
 
