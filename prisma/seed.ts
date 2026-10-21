@@ -101,14 +101,14 @@ async function main() {
   for (const t of trucks) await db.truck.upsert({ where: { plate: t.plate }, update: {}, create: t });
 
   const drivers = [
-    { email: "arben@example.com", name: "Arben K.", category: "C" as const },
-    { email: "driton@example.com", name: "Driton M.", category: "CE" as const },
+    { email: "arben@example.com", name: "Arben K.", phone: "+38344000101", category: "C" as const },
+    { email: "driton@example.com", name: "Driton M.", phone: "+38344000102", category: "CE" as const },
   ];
   for (const d of drivers) {
     const user = await db.user.upsert({
       where: { email: d.email },
       update: {},
-      create: { email: d.email, name: d.name, roleId: roles.DRIVER, passwordHash: await hash("driver-demo-password") },
+      create: { email: d.email, name: d.name, phone: d.phone, roleId: roles.DRIVER, passwordHash: await hash("driver-demo-password") },
     });
     await db.driver.upsert({
       where: { userId: user.id },

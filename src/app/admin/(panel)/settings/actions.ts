@@ -16,7 +16,7 @@ export type SettingsState = { ok?: boolean; error?: "invalid" | "logoType" | "lo
 const TEXT_KEYS = [
   "brand.name", "brand.tagline", "brand.primaryColor",
   "company.legalName", "company.nui", "company.address", "company.city", "company.iban", "company.bank",
-  "contact.phone", "contact.whatsapp", "contact.email",
+  "contact.phone", "contact.whatsapp", "contact.email", "review.url",
   "invoice.series",
 ] as const satisfies readonly SettingKey[];
 const INT_KEYS = [

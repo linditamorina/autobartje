@@ -67,6 +67,17 @@ tests/e2e/         Playwright tests
 - **Privacy**: no analytics or marketing scripts load before cookie consent; "Reject" is as prominent as "Accept";
   each choice is logged in `Consent` with a truncated IP. Retention periods are settings.
 
+## Messages (SMS and email)
+
+Every customer, driver and office message is written to the `NotificationOutbox` table in the same
+transaction as the order change, then sent right after the response and by `/api/cron/notifications`
+every minute (Vercel Cron, see `vercel.json`; protect it with `CRON_SECRET`). Failed sends retry after
+1, 5, 15 and 60 minutes; the admin page **Messages** shows every message and can resend failed ones.
+Texts live in `src/server/notifications/templates.ts` (sq/en/de). SMS drop diacritics (ë→e, ç→c) so a
+message fits 160 characters instead of 70. WhatsApp customers get SMS until the WhatsApp Business API
+lands in phase 2. `/api/cron/daily` sends fleet paperwork reminders (30/7/1/0 days) and deletes data
+past the retention periods set in Settings.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon

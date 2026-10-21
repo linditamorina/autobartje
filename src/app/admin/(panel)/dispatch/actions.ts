@@ -6,6 +6,7 @@ import { assertStaff } from "@/server/auth/guard";
 import { AssignError, assignOrder, unassignOrder } from "@/server/dispatch/assign";
 import type { Conflict } from "@/server/dispatch/conflicts";
 import { fromBusinessLocal } from "@/lib/time";
+import { kickOutbox } from "@/server/notifications/kick";
 
 export type AssignState = { ok?: boolean; error?: string; conflicts?: Conflict[] } | undefined;
 
@@ -33,6 +34,7 @@ export async function assignAction(_: AssignState, form: FormData): Promise<Assi
   if (!parsed.success) return { error: "invalid" };
   try {
     await assignOrder(parsed.data, user.id);
+    kickOutbox();
   } catch (err) {
     if (err instanceof AssignError) return { error: err.code, conflicts: err.conflicts };
     throw err;

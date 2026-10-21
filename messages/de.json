@@ -249,7 +249,8 @@
       "logout": "Abmelden",
       "menu": "Menü",
       "viewSite": "Website ansehen",
-      "reports": "Berichte"
+      "reports": "Berichte",
+      "messages": "Nachrichten"
     },
     "login": {
       "title": "Mitarbeiter-Login",
@@ -428,7 +429,9 @@
       "storageMissing": "Dateispeicher (R2) ist nicht eingerichtet, daher können noch keine Logos hochgeladen werden.",
       "logoTypeError": "Bitte eine PNG-, WebP- oder SVG-Datei verwenden (SVG ohne Skripte).",
       "logoSizeError": "Das Logo muss kleiner als 1 MB sein.",
-      "nuiHelp": "9 Ziffern, steht auf jeder Rechnung."
+      "nuiHelp": "9 Ziffern, steht auf jeder Rechnung.",
+      "reviewUrl": "Google-Bewertungslink",
+      "reviewUrlHelp": "Wird Kunden 2 Stunden nach der Zustellung gesendet. Leer lassen, um nichts zu senden."
     },
     "audit": {
       "title": "Änderungsprotokoll",
@@ -675,6 +678,33 @@
         "last_owner": "Es muss mindestens einen aktiven Inhaber geben.",
         "not_found": "Konto nicht gefunden."
       }
+    },
+    "messages": {
+      "title": "Nachrichten",
+      "intro": "SMS und E-Mails an Kunden, Fahrer und das Büro. Fehlgeschlagene Nachrichten können nach Behebung des Problems erneut gesendet werden.",
+      "all": "Alle",
+      "status": {
+        "PENDING": "Wartend",
+        "SENT": "Gesendet",
+        "FAILED": "Fehlgeschlagen",
+        "SKIPPED": "Nicht nötig"
+      },
+      "events": {
+        "booking_received": "Anfrage erhalten",
+        "booking_confirmed": "Auftrag bestätigt",
+        "driver_assigned": "Auftrag an Fahrer",
+        "driver_en_route": "Fahrer unterwegs",
+        "picked_up": "Fahrzeug abgeholt",
+        "delivered": "Fahrzeug zugestellt",
+        "invoice_issued": "Rechnung",
+        "payment_received": "Zahlung erhalten",
+        "review_request": "Bewertungsanfrage",
+        "admin_new_order": "Neuer-Auftrag-Alarm",
+        "admin_fleet_expiry": "Fuhrpark-Ablauferinnerung"
+      },
+      "retry": "Erneut senden",
+      "empty": "Noch keine Nachrichten.",
+      "scheduled": "Wird gesendet {time}"
     }
   }
 }
