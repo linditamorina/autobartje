@@ -96,7 +96,7 @@ export function BookingWizard({ vatRateBp }: { vatRateBp: number }) {
       if (res.ok) {
         trackEvent("booking_submitted", { service: draft.service, value: (quote?.totalCents ?? 0) / 100, currency: "EUR" });
         clearDraft();
-        router.push({ pathname: "/book/done", query: { order: res.orderNumber } });
+        router.push({ pathname: "/book/done", query: { order: res.orderNumber, t: res.trackingToken } });
         return;
       }
       setFailure(t(`errors.${res.error === "invalid" ? "server" : res.error}` as never));

@@ -11,6 +11,12 @@ describe("renderMessage", () => {
     expect(renderMessage("booking_confirmed", { ...p, locale: "de" }, ctx)?.text).toMatch(/Preis: 59,00\s€ inkl\. MwSt\./);
   });
 
+  it("adds the tracking link when there is one", () => {
+    const url = "https://example.com/en/track/abc";
+    expect(renderMessage("driver_en_route", { orderNumber: "P-1", locale: "en", trackUrl: url }, ctx)?.text).toContain(`Track your order: ${url}`);
+    expect(renderMessage("booking_received", { orderNumber: "P-1", locale: "sq" }, ctx)?.text).not.toContain("Ndiqni");
+  });
+
   it("falls back to Albanian for Serbian until it is translated", () => {
     expect(renderMessage("delivered", { orderNumber: "P-1", locale: "sr" }, ctx)?.text).toContain("u dorëzua");
   });

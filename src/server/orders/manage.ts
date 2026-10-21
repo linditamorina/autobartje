@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
 import { enqueueNotification } from "@/server/notifications/enqueue";
+import { trackUrl } from "@/lib/tracking";
 import { canTransition, STATUS_NOTIFICATION, type OrderStatus } from "./status";
 import { nextOrderNumber } from "./numbering";
 import type { Prisma } from "@/generated/prisma/client";
@@ -57,6 +58,7 @@ export async function changeOrderStatus(
         driverName: a?.driver.user.name ?? null,
         truckPlate: a?.truck.plate ?? null,
         locale: order.locale,
+        trackUrl: trackUrl(order.trackingToken, order.locale),
       };
       await notifyCustomer(tx, order.customer, event, payload, orderId);
       if (to === "DELIVERED") {

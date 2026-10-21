@@ -19,6 +19,7 @@ import { assignChoices } from "@/server/dispatch/queries";
 import { defaultDurationMin } from "@/server/dispatch/conflicts";
 import { isOpen } from "@/server/orders/status";
 import { roundedNow, toBusinessLocal } from "@/lib/time";
+import { trackUrl } from "@/lib/tracking";
 
 export default async function OrderDetailPage({ params, searchParams }: PageProps<"/admin/orders/[id]">) {
   const user = await requireStaff("orders.read");
@@ -196,6 +197,10 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
             <p className="text-3xl font-extrabold tabular-nums">{priceValue != null ? formatEur(priceValue, locale) : "–"}</p>
             {order.finalCents == null && order.estimatedCents != null && <p className="text-sm text-muted-foreground">{t("estimated")}</p>}
             {canUpdate && <div className="mt-3"><PriceForm orderId={order.id} defaultPrice={defaultPrice} /></div>}
+          </Panel>
+          <Panel title={t("trackingLink")}>
+            <input readOnly aria-label={t("trackingLink")} value={trackUrl(order.trackingToken, order.locale)} className="w-full rounded-lg border border-input bg-muted px-2 py-2 font-mono text-xs" />
+            <a href={trackUrl(order.trackingToken, order.locale)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold underline">{t("openTracking")}</a>
           </Panel>
           {order.payments.length > 0 && (
             <Panel title={t("payments")}>

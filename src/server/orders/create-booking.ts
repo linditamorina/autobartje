@@ -4,6 +4,7 @@ import { getSettings } from "@/server/settings";
 import { priceQuote } from "@/server/pricing/quote";
 import { enqueueNotification } from "@/server/notifications/enqueue";
 import type { BookingInput } from "@/lib/validation/booking";
+import { trackUrl } from "@/lib/tracking";
 import { nextOrderNumber } from "./numbering";
 
 export const PRIVACY_POLICY_VERSION = "privacy-2026-10";
@@ -12,6 +13,7 @@ export const TERMS_VERSION = "terms-2026-10";
 export interface BookingResult {
   orderNumber: string;
   estimatedCents: number | null;
+  trackingToken: string;
 }
 
 /**
@@ -139,6 +141,7 @@ export async function createBooking(input: BookingInput, meta: { ip: string | nu
       dropoff: q.dropoff?.address ?? null,
       estimatedCents: created.estimatedCents,
       locale: input.locale,
+      trackUrl: trackUrl(created.trackingToken, input.locale),
     };
     const channel = input.contact.preferredChannel;
     const to = channel === "EMAIL" && customer.email ? customer.email : customer.phone;
@@ -159,5 +162,5 @@ export async function createBooking(input: BookingInput, meta: { ip: string | nu
     return created;
   });
 
-  return { orderNumber: order.number, estimatedCents: order.estimatedCents };
+  return { orderNumber: order.number, estimatedCents: order.estimatedCents, trackingToken: order.trackingToken };
 }

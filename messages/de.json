@@ -16,7 +16,8 @@
     "skipToContent": "Zum Inhalt springen",
     "faq": "FAQ",
     "areas": "Gebiete",
-    "blog": "Tipps"
+    "blog": "Tipps",
+    "track": "Auftrag verfolgen"
   },
   "ActionBar": {
     "label": "Schnellaktionen",
@@ -234,7 +235,8 @@
     "doneTitle": "Buchung erhalten",
     "doneText": "Vielen Dank. Ihre Auftragsnummer ist {number}. Der Disponent bestätigt den Endpreis in Kürze.",
     "doneSave": "Bewahren Sie diese Nummer auf. Zusammen mit Ihrer Telefonnummer können Sie den Auftrag verfolgen.",
-    "doneCall": "Dringend? Jetzt anrufen"
+    "doneCall": "Dringend? Jetzt anrufen",
+    "doneTrack": "Auftrag verfolgen"
   },
   "Admin": {
     "nav": {
@@ -390,7 +392,9 @@
       "signature": "Unterschrift des Kunden",
       "signedBy": "Unterschrieben von {name} · {date}",
       "payments": "Erhaltene Zahlungen",
-      "notInvoiced": "noch auf keiner Rechnung"
+      "notInvoiced": "noch auf keiner Rechnung",
+      "trackingLink": "Verfolgungslink für den Kunden",
+      "openTracking": "Verfolgungsseite öffnen"
     },
     "alerts": {
       "newUrgent": "Neuer dringender Auftrag {number}",
@@ -1011,5 +1015,50 @@
       "rate_limited": "Zu viele Uploads. Bitte kurz warten.",
       "forbidden": "Nicht erlaubt."
     }
+  },
+  "Track": {
+    "lookupTitle": "Auftrag verfolgen",
+    "lookupLead": "Geben Sie Ihre Auftragsnummer und die Telefonnummer ein, mit der Sie gebucht haben.",
+    "orderNumber": "Auftragsnummer",
+    "phone": "Telefonnummer",
+    "find": "Auftrag anzeigen",
+    "errors": {
+      "not_found": "Wir haben keinen Auftrag mit dieser Nummer und Telefonnummer gefunden. Bitte prüfen oder uns anrufen.",
+      "rate_limited": "Zu viele Versuche. Bitte einige Minuten warten oder uns anrufen."
+    },
+    "title": "Auftrag {number}",
+    "updated": "Aktualisiert {time}",
+    "liveHint": "die Seite aktualisiert sich selbst",
+    "progress": "Fortschritt",
+    "steps": {
+      "RECEIVED": "Anfrage erhalten",
+      "CONFIRMED": "Bestätigt",
+      "DRIVER_EN_ROUTE": "Fahrer unterwegs",
+      "PICKED_UP": "Fahrzeug verladen",
+      "ARRIVED": "Fahrer angekommen",
+      "IN_TRANSIT": "Unterwegs zum Ziel",
+      "DELIVERED": "Zugestellt"
+    },
+    "hints": {
+      "RECEIVED": "Wir rufen Sie gleich an, um Preis und Zeit zu bestätigen.",
+      "CONFIRMED": "Ihr Auftrag ist eingeplant. Wir melden uns, wenn der Fahrer losfährt.",
+      "DRIVER_EN_ROUTE": "Der Fahrer ist auf dem Weg zur Abholadresse.",
+      "PICKED_UP": "Ihr Fahrzeug ist bei uns.",
+      "IN_TRANSIT": "Ihr Fahrzeug ist unterwegs zum Ziel.",
+      "DELIVERED": "Erledigt."
+    },
+    "cancelled": "Dieser Auftrag wurde storniert. Rufen Sie uns an, falls das ein Irrtum ist.",
+    "when": "Geplant für",
+    "asap": "So schnell wie möglich",
+    "route": "Route",
+    "driver": "Fahrer",
+    "price": "Preis (inkl. MwSt.)",
+    "estimate": "Schätzung (inkl. MwSt.)",
+    "call": "Anrufen",
+    "whatsappText": "Hallo, zu meinem Auftrag {number}:",
+    "privacy": "Nur wer diesen Link hat, sieht diese Seite. Bitte nicht weitergeben.",
+    "privacyLink": "Datenschutzerklärung",
+    "expiredTitle": "Dieser Link ist abgelaufen",
+    "expiredText": "Aufträge werden hier 30 Tage nach Abschluss angezeigt. Rufen Sie uns an, wenn Sie etwas zu diesem Auftrag brauchen."
   }
 }

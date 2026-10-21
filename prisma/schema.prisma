@@ -408,7 +408,7 @@ model Order {
   currency        String        @default("EUR")
 
   // Customer-facing tracking (phase 2): order number + last digits of phone
-  trackingToken   String        @unique @default(cuid())
+  trackingToken   String        @unique @default(dbgenerated("replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')")) // 244 random bits: the link is the only key
 
   bookingDraft    Json?         // autosave of the wizard while status = DRAFT
   confirmedAt     DateTime?

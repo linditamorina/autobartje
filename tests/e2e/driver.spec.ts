@@ -118,7 +118,9 @@ test("driver does a job from start to delivery and the office sees the record", 
   await page.getByRole("button", { name: "Save and confirm delivery" }).click();
   await expect(page.getByRole("heading", { name: order.number })).toBeVisible();
   await page.getByRole("button", { name: "Vehicle delivered" }).click();
-  await expect(page.getByText("Delivered").first()).toBeVisible();
+  // The last step is done: no next button, status shows delivered
+  await expect(page.getByRole("button", { name: "Vehicle delivered" })).toHaveCount(0);
+  await expect(page.getByText("Delivered", { exact: true })).toBeVisible();
 
   // Cash from the customer
   page.once("dialog", (d) => d.accept());
@@ -126,6 +128,13 @@ test("driver does a job from start to delivery and the office sees the record", 
   await page.getByRole("button", { name: "Record cash" }).click();
   await expect(page.getByText("Cash recorded.")).toBeVisible();
   await expect(page.getByText(/Cash received: €\s?90\.00|Cash received: 90\.00\s?€/)).toBeVisible();
+
+  // The customer's tracking page shows the delivery
+  await page.goto(`/en/track/${order.trackingToken}`);
+  await expect(page.getByRole("heading", { name: `Order ${order.number}` })).toBeVisible();
+  await expect(page.locator('[aria-current="step"]')).toHaveCount(0);
+  await expect(page.getByText("Driver", { exact: true })).toBeVisible();
+  await noSideScroll(page);
   await context.close();
 
   // Photos are private

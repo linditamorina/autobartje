@@ -93,6 +93,12 @@ past the retention periods set in Settings.
 - Cash the driver takes is recorded on the job and matched to the invoice when the office issues it.
 - Without R2, private files are written to `LOCAL_STORAGE_DIR` (or `.storage` in development). Set R2 or a persistent `LOCAL_STORAGE_DIR` in production; the photo upload refuses to work without either. Photos and signatures of closed orders are deleted after "Inspection photos" days in Settings → Data retention.
 
+## Order tracking
+
+- Every order has a private tracking link (`/track/<64 random hex characters>`). It is sent in the booking, confirmation, "driver on the way" and "vehicle loaded" messages, shown after booking, and on the admin order page for the office to share by phone or WhatsApp.
+- Customers without the link can open `/track` and enter the order number and the phone they booked with (rate limited per address and per order number).
+- The page shows the steps with times, the planned time, route, the driver's first name and truck, and the price. It refreshes itself every 20 seconds while open and the order is in progress. It never shows notes, staff or vehicle details, is not indexed, and stops showing details 30 days after the order is finished or as soon as the customer's data is anonymised.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon

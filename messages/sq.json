@@ -16,7 +16,8 @@
     "skipToContent": "Kalo te përmbajtja",
     "faq": "Pyetjet",
     "areas": "Zonat",
-    "blog": "Këshilla"
+    "blog": "Këshilla",
+    "track": "Ndiq porosinë"
   },
   "ActionBar": {
     "label": "Veprime të shpejta",
@@ -234,7 +235,8 @@
     "doneTitle": "Rezervimi u pranua",
     "doneText": "Faleminderit. Numri i porosisë është {number}. Operatori ta konfirmon çmimin përfundimtar së shpejti.",
     "doneSave": "Ruaje këtë numër. Të duhet bashkë me numrin e telefonit për ta ndjekur porosinë.",
-    "doneCall": "Urgjente? Na thirr tani"
+    "doneCall": "Urgjente? Na thirr tani",
+    "doneTrack": "Ndiqni porosinë"
   },
   "Admin": {
     "nav": {
@@ -390,7 +392,9 @@
       "signature": "Nënshkrimi i klientit",
       "signedBy": "Nënshkruar nga {name} · {date}",
       "payments": "Pagesat e marra",
-      "notInvoiced": "ende pa faturë"
+      "notInvoiced": "ende pa faturë",
+      "trackingLink": "Linku i ndjekjes për klientin",
+      "openTracking": "Hap faqen e ndjekjes"
     },
     "alerts": {
       "newUrgent": "Porosi e re urgjente {number}",
@@ -1011,5 +1015,50 @@
       "rate_limited": "Shumë ngarkime. Prisni pak.",
       "forbidden": "Nuk lejohet."
     }
+  },
+  "Track": {
+    "lookupTitle": "Ndiq porosinë",
+    "lookupLead": "Shkruani numrin e porosisë dhe numrin e telefonit me të cilin keni rezervuar.",
+    "orderNumber": "Numri i porosisë",
+    "phone": "Numri i telefonit",
+    "find": "Shfaq porosinë",
+    "errors": {
+      "not_found": "Nuk gjetëm porosi me këtë numër dhe telefon. Kontrolloni të dyja ose na telefononi.",
+      "rate_limited": "Shumë përpjekje. Prisni pak minuta ose na telefononi."
+    },
+    "title": "Porosia {number}",
+    "updated": "Përditësuar {time}",
+    "liveHint": "faqja përditësohet vetë",
+    "progress": "Ecuria",
+    "steps": {
+      "RECEIVED": "Kërkesa u pranua",
+      "CONFIRMED": "U konfirmua",
+      "DRIVER_EN_ROUTE": "Shoferi është në rrugë",
+      "PICKED_UP": "Automjeti u ngarkua",
+      "ARRIVED": "Shoferi arriti",
+      "IN_TRANSIT": "Në transport",
+      "DELIVERED": "U dorëzua"
+    },
+    "hints": {
+      "RECEIVED": "Do t'ju telefonojmë së shpejti për të konfirmuar çmimin dhe orarin.",
+      "CONFIRMED": "Porosia juaj është planifikuar. Do t'ju njoftojmë kur të niset shoferi.",
+      "DRIVER_EN_ROUTE": "Shoferi po vjen në adresën e marrjes.",
+      "PICKED_UP": "Automjeti juaj është te ne.",
+      "IN_TRANSIT": "Automjeti juaj është në rrugë drejt destinacionit.",
+      "DELIVERED": "Përfundoi."
+    },
+    "cancelled": "Kjo porosi u anulua. Na telefononi nëse është gabim.",
+    "when": "Planifikuar për",
+    "asap": "Sa më shpejt",
+    "route": "Itinerari",
+    "driver": "Shoferi",
+    "price": "Çmimi (me TVSH)",
+    "estimate": "Vlerësim (me TVSH)",
+    "call": "Na telefononi",
+    "whatsappText": "Përshëndetje, për porosinë time {number}:",
+    "privacy": "Këtë faqe e shohin vetëm ata që kanë linkun. Mos e ndani me të tjerë.",
+    "privacyLink": "Politika e privatësisë",
+    "expiredTitle": "Ky link ndjekjeje ka skaduar",
+    "expiredText": "Porositë shfaqen këtu 30 ditë pasi përfundojnë. Na telefononi nëse keni nevojë për diçka rreth kësaj porosie."
   }
 }

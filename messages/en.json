@@ -16,7 +16,8 @@
     "skipToContent": "Skip to content",
     "faq": "FAQ",
     "areas": "Areas",
-    "blog": "Tips"
+    "blog": "Tips",
+    "track": "Track an order"
   },
   "ActionBar": {
     "label": "Quick actions",
@@ -234,7 +235,8 @@
     "doneTitle": "Booking received",
     "doneText": "Thank you. Your order number is {number}. An operator will confirm the final price shortly.",
     "doneSave": "Keep this number. You need it together with your phone number to track the order.",
-    "doneCall": "Urgent? Call us now"
+    "doneCall": "Urgent? Call us now",
+    "doneTrack": "Track your order"
   },
   "Admin": {
     "nav": {
@@ -390,7 +392,9 @@
       "signature": "Customer signature",
       "signedBy": "Signed by {name} · {date}",
       "payments": "Payments received",
-      "notInvoiced": "not on an invoice yet"
+      "notInvoiced": "not on an invoice yet",
+      "trackingLink": "Customer tracking link",
+      "openTracking": "Open tracking page"
     },
     "alerts": {
       "newUrgent": "New urgent order {number}",
@@ -1011,5 +1015,50 @@
       "rate_limited": "Too many uploads. Wait a moment.",
       "forbidden": "Not allowed."
     }
+  },
+  "Track": {
+    "lookupTitle": "Track an order",
+    "lookupLead": "Enter your order number and the phone number you booked with.",
+    "orderNumber": "Order number",
+    "phone": "Phone number",
+    "find": "Show my order",
+    "errors": {
+      "not_found": "We could not find an order with this number and phone. Check both, or call us.",
+      "rate_limited": "Too many tries. Please wait a few minutes or call us."
+    },
+    "title": "Order {number}",
+    "updated": "Updated {time}",
+    "liveHint": "this page updates itself",
+    "progress": "Progress",
+    "steps": {
+      "RECEIVED": "Request received",
+      "CONFIRMED": "Confirmed",
+      "DRIVER_EN_ROUTE": "Driver on the way",
+      "PICKED_UP": "Vehicle loaded",
+      "ARRIVED": "Driver arrived",
+      "IN_TRANSIT": "In transit",
+      "DELIVERED": "Delivered"
+    },
+    "hints": {
+      "RECEIVED": "We will call you shortly to confirm the price and time.",
+      "CONFIRMED": "Your order is planned. We will let you know when the driver leaves.",
+      "DRIVER_EN_ROUTE": "The driver is coming to the pickup address.",
+      "PICKED_UP": "Your vehicle is with us.",
+      "IN_TRANSIT": "Your vehicle is on its way to the destination.",
+      "DELIVERED": "Done."
+    },
+    "cancelled": "This order was cancelled. Call us if this is a mistake.",
+    "when": "Planned for",
+    "asap": "As soon as possible",
+    "route": "Route",
+    "driver": "Driver",
+    "price": "Price (incl. VAT)",
+    "estimate": "Estimate (incl. VAT)",
+    "call": "Call us",
+    "whatsappText": "Hello, about my order {number}:",
+    "privacy": "Only people with this link can see this page. Do not share it.",
+    "privacyLink": "Privacy policy",
+    "expiredTitle": "This tracking link has expired",
+    "expiredText": "Orders are shown here for 30 days after they are finished. Call us if you need anything about this order."
   }
 }

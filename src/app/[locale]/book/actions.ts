@@ -10,7 +10,7 @@ import { verifyTurnstile } from "@/server/security/turnstile";
 import { kickOutbox } from "@/server/notifications/kick";
 
 export type BookingResponse =
-  | { ok: true; orderNumber: string }
+  | { ok: true; orderNumber: string; trackingToken: string }
   | { ok: false; error: "invalid" | "bot" | "rate_limited" | "server"; issues?: { path: string; code: string }[] };
 
 export async function submitBooking(raw: unknown): Promise<BookingResponse> {
@@ -32,7 +32,7 @@ export async function submitBooking(raw: unknown): Promise<BookingResponse> {
     const userAgent = (await headers()).get("user-agent");
     const result = await createBooking(parsed.data, { ip: truncateIp(ip), userAgent });
     kickOutbox();
-    return { ok: true, orderNumber: result.orderNumber };
+    return { ok: true, orderNumber: result.orderNumber, trackingToken: result.trackingToken };
   } catch (err) {
     console.error("[booking]", err);
     return { ok: false, error: "server" };

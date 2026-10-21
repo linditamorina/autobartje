@@ -36,6 +36,7 @@ export async function SiteFooter({ settings }: { settings: Settings }) {
             <li><Link href="/blog" className="underline-offset-4 hover:underline">{nav("blog")}</Link></li>
             <li><Link href="/about" className="underline-offset-4 hover:underline">{nav("about")}</Link></li>
             <li><Link href="/contact" className="underline-offset-4 hover:underline">{nav("contact")}</Link></li>
+            <li><Link href="/track" className="underline-offset-4 hover:underline">{nav("track")}</Link></li>
           </ul>
         </nav>
         <nav aria-label={t("legal")}>

@@ -22,13 +22,15 @@ type Dict = Record<NotificationEvent, (p: P, c: RenderContext, f: Fmt) => Render
 type Fmt = { eur: (cents: unknown) => string; time: (iso: unknown) => string };
 
 const s = (v: unknown) => (v == null ? "" : String(v));
+/** " <label>: <link>" when the order has a tracking link. */
+const track = (p: P, label: string) => (p.trackUrl ? ` ${label}: ${s(p.trackUrl)}` : "");
 
 const sq: Dict = {
-  booking_received: (p, c) => ({ subject: `Kërkesa ${s(p.orderNumber)} u pranua`, text: `${c.brand}: E pranuam kërkesën ${s(p.orderNumber)}. Do t'ju telefonojmë së shpejti për konfirmim. Pyetje: ${c.phone}` }),
-  booking_confirmed: (p, c, f) => ({ subject: `Porosia ${s(p.orderNumber)} u konfirmua`, text: `${c.brand}: Porosia ${s(p.orderNumber)} u konfirmua.${p.finalCents != null ? ` Çmimi: ${f.eur(p.finalCents)} me TVSH.` : ""} Tel: ${c.phone}` }),
+  booking_received: (p, c) => ({ subject: `Kërkesa ${s(p.orderNumber)} u pranua`, text: `${c.brand}: E pranuam kërkesën ${s(p.orderNumber)}. Do t'ju telefonojmë së shpejti për konfirmim. Pyetje: ${c.phone}${track(p, "Ndiqni porosinë")}` }),
+  booking_confirmed: (p, c, f) => ({ subject: `Porosia ${s(p.orderNumber)} u konfirmua`, text: `${c.brand}: Porosia ${s(p.orderNumber)} u konfirmua.${p.finalCents != null ? ` Çmimi: ${f.eur(p.finalCents)} me TVSH.` : ""} Tel: ${c.phone}${track(p, "Ndiqni porosinë")}` }),
   driver_assigned: (p, c, f) => p.audience === "driver" ? { subject: `Punë e re ${s(p.orderNumber)}`, text: `${c.brand}: Punë e re ${s(p.orderNumber)}. Marrja: ${s(p.pickupAddress)}, ${f.time(p.start)}. Kamioni: ${s(p.truckPlate)}.` } : null,
-  driver_en_route: (p, c) => ({ subject: `Shoferi është në rrugë (${s(p.orderNumber)})`, text: `${c.brand}: Shoferi${p.driverName ? ` ${s(p.driverName)}` : ""} është nisur drejt jush${p.truckPlate ? ` (kamioni ${s(p.truckPlate)})` : ""}. Tel: ${c.phone}` }),
-  picked_up: (p, c) => ({ subject: `Automjeti u mor (${s(p.orderNumber)})`, text: `${c.brand}: Automjeti juaj u mor në ngarkim. Porosia ${s(p.orderNumber)}.` }),
+  driver_en_route: (p, c) => ({ subject: `Shoferi është në rrugë (${s(p.orderNumber)})`, text: `${c.brand}: Shoferi${p.driverName ? ` ${s(p.driverName)}` : ""} është nisur drejt jush${p.truckPlate ? ` (kamioni ${s(p.truckPlate)})` : ""}. Tel: ${c.phone}${track(p, "Ndiqni porosinë")}` }),
+  picked_up: (p, c) => ({ subject: `Automjeti u mor (${s(p.orderNumber)})`, text: `${c.brand}: Automjeti juaj u mor në ngarkim. Porosia ${s(p.orderNumber)}.${track(p, "Ndiqni porosinë")}` }),
   delivered: (p, c) => ({ subject: `Automjeti u dorëzua (${s(p.orderNumber)})`, text: `${c.brand}: Automjeti juaj u dorëzua. Faleminderit që na zgjodhët!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `Si ishte shërbimi ynë?`, text: `${c.brand}: Faleminderit! Na ndihmon shumë një vlerësim i shkurtër: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Fatura ${s(p.invoiceNumber)}`, text: `${c.brand}: Fatura ${s(p.invoiceNumber)} për ${f.eur(p.totalCents)} është gati.${p.url ? ` ${s(p.url)}` : ""}` }),
@@ -38,11 +40,11 @@ const sq: Dict = {
 };
 
 const en: Dict = {
-  booking_received: (p, c) => ({ subject: `Request ${s(p.orderNumber)} received`, text: `${c.brand}: We received your request ${s(p.orderNumber)}. We will call you shortly to confirm. Questions: ${c.phone}` }),
-  booking_confirmed: (p, c, f) => ({ subject: `Order ${s(p.orderNumber)} confirmed`, text: `${c.brand}: Your order ${s(p.orderNumber)} is confirmed.${p.finalCents != null ? ` Price: ${f.eur(p.finalCents)} incl. VAT.` : ""} Phone: ${c.phone}` }),
+  booking_received: (p, c) => ({ subject: `Request ${s(p.orderNumber)} received`, text: `${c.brand}: We received your request ${s(p.orderNumber)}. We will call you shortly to confirm. Questions: ${c.phone}${track(p, "Track your order")}` }),
+  booking_confirmed: (p, c, f) => ({ subject: `Order ${s(p.orderNumber)} confirmed`, text: `${c.brand}: Your order ${s(p.orderNumber)} is confirmed.${p.finalCents != null ? ` Price: ${f.eur(p.finalCents)} incl. VAT.` : ""} Phone: ${c.phone}${track(p, "Track your order")}` }),
   driver_assigned: (p, c, f) => p.audience === "driver" ? { subject: `New job ${s(p.orderNumber)}`, text: `${c.brand}: New job ${s(p.orderNumber)}. Pickup: ${s(p.pickupAddress)}, ${f.time(p.start)}. Truck: ${s(p.truckPlate)}.` } : null,
-  driver_en_route: (p, c) => ({ subject: `Your driver is on the way (${s(p.orderNumber)})`, text: `${c.brand}: Your driver${p.driverName ? ` ${s(p.driverName)}` : ""} is on the way${p.truckPlate ? ` (truck ${s(p.truckPlate)})` : ""}. Phone: ${c.phone}` }),
-  picked_up: (p, c) => ({ subject: `Vehicle picked up (${s(p.orderNumber)})`, text: `${c.brand}: Your vehicle has been loaded. Order ${s(p.orderNumber)}.` }),
+  driver_en_route: (p, c) => ({ subject: `Your driver is on the way (${s(p.orderNumber)})`, text: `${c.brand}: Your driver${p.driverName ? ` ${s(p.driverName)}` : ""} is on the way${p.truckPlate ? ` (truck ${s(p.truckPlate)})` : ""}. Phone: ${c.phone}${track(p, "Track your order")}` }),
+  picked_up: (p, c) => ({ subject: `Vehicle picked up (${s(p.orderNumber)})`, text: `${c.brand}: Your vehicle has been loaded. Order ${s(p.orderNumber)}.${track(p, "Track your order")}` }),
   delivered: (p, c) => ({ subject: `Vehicle delivered (${s(p.orderNumber)})`, text: `${c.brand}: Your vehicle has been delivered. Thank you for choosing us!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `How did we do?`, text: `${c.brand}: Thank you! A short review helps us a lot: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Invoice ${s(p.invoiceNumber)}`, text: `${c.brand}: Invoice ${s(p.invoiceNumber)} for ${f.eur(p.totalCents)} is ready.${p.url ? ` ${s(p.url)}` : ""}` }),
@@ -52,11 +54,11 @@ const en: Dict = {
 };
 
 const de: Dict = {
-  booking_received: (p, c) => ({ subject: `Anfrage ${s(p.orderNumber)} erhalten`, text: `${c.brand}: Wir haben Ihre Anfrage ${s(p.orderNumber)} erhalten und rufen Sie gleich zur Bestätigung an. Fragen: ${c.phone}` }),
-  booking_confirmed: (p, c, f) => ({ subject: `Auftrag ${s(p.orderNumber)} bestätigt`, text: `${c.brand}: Ihr Auftrag ${s(p.orderNumber)} ist bestätigt.${p.finalCents != null ? ` Preis: ${f.eur(p.finalCents)} inkl. MwSt.` : ""} Tel.: ${c.phone}` }),
+  booking_received: (p, c) => ({ subject: `Anfrage ${s(p.orderNumber)} erhalten`, text: `${c.brand}: Wir haben Ihre Anfrage ${s(p.orderNumber)} erhalten und rufen Sie gleich zur Bestätigung an. Fragen: ${c.phone}${track(p, "Auftrag verfolgen")}` }),
+  booking_confirmed: (p, c, f) => ({ subject: `Auftrag ${s(p.orderNumber)} bestätigt`, text: `${c.brand}: Ihr Auftrag ${s(p.orderNumber)} ist bestätigt.${p.finalCents != null ? ` Preis: ${f.eur(p.finalCents)} inkl. MwSt.` : ""} Tel.: ${c.phone}${track(p, "Auftrag verfolgen")}` }),
   driver_assigned: (p, c, f) => p.audience === "driver" ? { subject: `Neuer Auftrag ${s(p.orderNumber)}`, text: `${c.brand}: Neuer Auftrag ${s(p.orderNumber)}. Abholung: ${s(p.pickupAddress)}, ${f.time(p.start)}. Fahrzeug: ${s(p.truckPlate)}.` } : null,
-  driver_en_route: (p, c) => ({ subject: `Ihr Fahrer ist unterwegs (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrer${p.driverName ? ` ${s(p.driverName)}` : ""} ist unterwegs${p.truckPlate ? ` (Fahrzeug ${s(p.truckPlate)})` : ""}. Tel.: ${c.phone}` }),
-  picked_up: (p, c) => ({ subject: `Fahrzeug abgeholt (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrzeug wurde verladen. Auftrag ${s(p.orderNumber)}.` }),
+  driver_en_route: (p, c) => ({ subject: `Ihr Fahrer ist unterwegs (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrer${p.driverName ? ` ${s(p.driverName)}` : ""} ist unterwegs${p.truckPlate ? ` (Fahrzeug ${s(p.truckPlate)})` : ""}. Tel.: ${c.phone}${track(p, "Auftrag verfolgen")}` }),
+  picked_up: (p, c) => ({ subject: `Fahrzeug abgeholt (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrzeug wurde verladen. Auftrag ${s(p.orderNumber)}.${track(p, "Auftrag verfolgen")}` }),
   delivered: (p, c) => ({ subject: `Fahrzeug zugestellt (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrzeug wurde zugestellt. Vielen Dank!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `Wie waren wir?`, text: `${c.brand}: Vielen Dank! Eine kurze Bewertung hilft uns sehr: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Rechnung ${s(p.invoiceNumber)}`, text: `${c.brand}: Rechnung ${s(p.invoiceNumber)} über ${f.eur(p.totalCents)} ist bereit.${p.url ? ` ${s(p.url)}` : ""}` }),
