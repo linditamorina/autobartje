@@ -1,0 +1,92 @@
+{
+  "Meta": {
+    "title": "{brand}: Tërheqje automjetesh 24/7 në Pejë dhe gjithë Kosovën",
+    "description": "Tërheqje dhe ndihmë në rrugë 24/7, transport automjetesh brenda Kosovës dhe import nga Gjermania, Zvicra dhe Austria. Ofertë e menjëhershme online."
+  },
+  "Nav": {
+    "services": "Shërbimet",
+    "import": "Import makinash",
+    "pricing": "Çmimet",
+    "fleet": "Flota",
+    "about": "Rreth nesh",
+    "contact": "Kontakti",
+    "quote": "Merr ofertë",
+    "menu": "Menyja",
+    "close": "Mbyll",
+    "skipToContent": "Kalo te përmbajtja"
+  },
+  "ActionBar": {
+    "label": "Veprime të shpejta",
+    "call": "Thirr 24/7",
+    "whatsapp": "WhatsApp",
+    "location": "Dërgo vendndodhjen",
+    "locating": "Duke gjetur…",
+    "locationError": "Nuk mund ta gjejmë vendndodhjen. Lejo qasjen në vendndodhje ose na thirr.",
+    "whatsappText": "Përshëndetje, kam nevojë për ndihmë me automjetin.",
+    "locationText": "Përshëndetje, kam nevojë për tërheqje. Vendndodhja ime: {link}"
+  },
+  "Hero": {
+    "badge": "Në dispozicion 24 orë, 7 ditë",
+    "title": "Tërheqje dhe transport automjetesh, kur të duhet",
+    "subtitle": "Nga Peja në gjithë Kosovën dhe nga Evropa në shtëpi. Mesatarisht arrijmë brenda {minutes} minutave.",
+    "emergencyTitle": "Urgjencë tani",
+    "emergencyText": "Automjeti u prish ose pësoi aksident? Thirr ose dërgo vendndodhjen me një prekje.",
+    "emergencyCall": "Thirr tani",
+    "plannedTitle": "Transport i planifikuar",
+    "plannedText": "Transport brenda vendit ose import nga Gjermania, Zvicra, Austria. Merr çmimin menjëherë.",
+    "plannedCta": "Llogarit çmimin"
+  },
+  "Services": {
+    "title": "Shërbimet tona",
+    "emergencyTowing": "Tërheqje urgjente 24/7",
+    "emergencyTowingText": "Aksident, prishje motori, makinë që nuk ndizet: vijmë ditë e natë.",
+    "roadside": "Ndihmë në rrugë",
+    "roadsideText": "Bateri, gomë, karburant, hapje dere, dhe nxjerrje me çikrik.",
+    "domestic": "Transport brenda Kosovës",
+    "domesticText": "Nga një qytet në tjetrin, te servisi, ose te blerësi i ri.",
+    "international": "Import nga Evropa",
+    "internationalText": "Gjermani, Zvicër, Austri → Kosovë, me ndihmë për doganë dhe targa eksporti.",
+    "more": "Më shumë"
+  },
+  "Trust": {
+    "title": "Pse na zgjedhin",
+    "years": "vite përvojë",
+    "vehicles": "automjete të transportuara",
+    "arrival": "minuta mesatarisht deri te ju",
+    "insured": "Të licencuar dhe të siguruar",
+    "insuredText": "Çdo automjet është i siguruar gjatë transportit."
+  },
+  "Footer": {
+    "rights": "Të gjitha të drejtat e rezervuara.",
+    "legal": "Ligjore",
+    "terms": "Kushtet e përdorimit",
+    "privacy": "Politika e privatësisë",
+    "cookies": "Politika e cookies",
+    "cookieSettings": "Cilësimet e cookies",
+    "nui": "NUI"
+  },
+  "Consent": {
+    "title": "Cookies",
+    "text": "Përdorim cookies të domosdoshme që faqja të funksionojë. Me lejen tënde përdorim edhe cookies për analitikë dhe marketing.",
+    "accept": "Prano të gjitha",
+    "reject": "Refuzo",
+    "customize": "Zgjidh",
+    "save": "Ruaj zgjedhjen",
+    "necessary": "Të domosdoshme (gjithmonë aktive)",
+    "analytics": "Analitikë",
+    "marketing": "Marketing",
+    "more": "Më shumë në politikën e cookies"
+  },
+  "Common": {
+    "language": "Gjuha",
+    "theme": "Pamja",
+    "light": "E çelët",
+    "dark": "E errët",
+    "finalPriceNote": "Çmimi përfundimtar konfirmohet nga operatori."
+  },
+  "NotFound": {
+    "title": "Faqja nuk u gjet",
+    "text": "Kjo faqe nuk ekziston ose është zhvendosur.",
+    "home": "Kthehu në fillim"
+  }
+}

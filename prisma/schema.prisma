@@ -1,0 +1,901 @@
+// autobartje — Prisma schema
+// Money is stored in integer euro cents. Times are UTC (timestamptz).
+// Coordinates are plain Float lat/lng; PostGIS can be added later as a migration.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum Locale {
+  sq
+  en
+  de
+  sr
+}
+
+enum ServiceType {
+  EMERGENCY_TOWING
+  ROADSIDE_ASSISTANCE
+  DOMESTIC_TRANSPORT
+  INTERNATIONAL_TRANSPORT
+}
+
+enum VehicleType {
+  CAR
+  SUV
+  VAN
+  MOTORCYCLE
+  LUXURY_LOW
+}
+
+enum OrderStatus {
+  DRAFT       // autosaved booking, not submitted
+  RECEIVED
+  CONFIRMED
+  DRIVER_EN_ROUTE
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED   // delivered + invoiced/paid
+  CANCELLED
+}
+
+enum OrderPriority {
+  NORMAL
+  URGENT
+}
+
+enum OrderChannel {
+  WEB_BOOKING
+  WEB_QUOTE
+  LOCATION_SHARE
+  PHONE
+  WHATSAPP
+  B2B_PORTAL
+  ADMIN
+}
+
+enum ContactChannel {
+  PHONE
+  SMS
+  WHATSAPP
+  EMAIL
+}
+
+enum CustomerKind {
+  PRIVATE
+  BUSINESS
+}
+
+enum CompanyType {
+  CAR_DEALER
+  GARAGE
+  INSURER
+  LEASING
+  OTHER
+}
+
+enum InspectionKind {
+  PICKUP
+  DELIVERY
+}
+
+enum PhotoAngle {
+  FRONT
+  FRONT_LEFT
+  LEFT
+  REAR_LEFT
+  REAR
+  REAR_RIGHT
+  RIGHT
+  FRONT_RIGHT
+  INTERIOR
+  ODOMETER
+  DAMAGE
+  OTHER
+}
+
+enum PricingRuleKind {
+  BASE_FEE
+  PER_KM
+  SURCHARGE_PERCENT
+  SURCHARGE_FIXED
+  PER_HOUR          // waiting time
+  MINIMUM_PRICE
+}
+
+enum QuoteStatus {
+  ESTIMATE    // shown by the calculator
+  SENT        // operator-confirmed price sent to customer
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum InvoiceKind {
+  PROFORMA
+  INVOICE
+  CREDIT_NOTE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum DocumentType {
+  REGISTRATION
+  SALES_CONTRACT
+  CMR
+  CUSTOMS_DECLARATION
+  EXPORT_PLATES
+  INSURANCE
+  ID_DOCUMENT
+  OTHER
+}
+
+enum ConsentType {
+  TERMS
+  PRIVACY
+  MARKETING
+  COOKIES_ANALYTICS
+  COOKIES_MARKETING
+  LOCATION_SHARING
+}
+
+enum LicenseCategory {
+  B
+  C
+  CE
+  C1
+  C1E
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum PrivacyRequestType {
+  EXPORT
+  DELETE
+}
+
+// ───────────────────────────── Identity & access ─────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phone         String?
+  passwordHash  String?   // argon2id; null for magic-link-only B2B users
+  totpSecret    String?   // encrypted at rest (AES-GCM, key in env)
+  totpEnabledAt DateTime?
+  locale        Locale    @default(sq)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  failedLogins  Int       @default(0)
+  lockedUntil   DateTime?
+  tokenVersion  Int       @default(0) // bump to revoke all JWT sessions
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id])
+  companyId     String?   // set for B2B portal users
+  company       Company?  @relation(fields: [companyId], references: [id])
+  driver        Driver?
+  accounts      Account[]
+  sessions      Session[]
+  pushSubscriptions PushSubscription[]
+  auditLogs     AuditLog[]
+  notes         OrderNote[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  key         String   @unique // OWNER, ADMIN, DISPATCHER, DRIVER, ACCOUNTANT, B2B_USER
+  name        String
+  permissions String[] // e.g. "orders.read", "orders.assign", "invoices.issue", "*"
+  requires2fa Boolean  @default(false)
+  isSystem    Boolean  @default(false) // system roles cannot be deleted
+  users       User[]
+}
+
+// Auth.js adapter tables
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  twoFactorVerified Boolean @default(false)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  // null = system / public customer
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String   // "order.status_changed", "invoice.issued", ...
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+}
+
+// ───────────────────────────── Customers & B2B ─────────────────────────────
+
+model Customer {
+  id              String         @id @default(cuid())
+  kind            CustomerKind   @default(PRIVATE)
+  fullName        String
+  phone           String         // E.164, e.g. +38344123456
+  email           String?
+  preferredChannel ContactChannel @default(PHONE)
+  locale          Locale         @default(sq)
+  companyId       String?
+  company         Company?       @relation(fields: [companyId], references: [id])
+  notes           String?
+  vehicles        Vehicle[]
+  orders          Order[]
+  consents        Consent[]
+  reviews         Review[]
+  invoices        Invoice[]
+  privacyRequests PrivacyRequest[]
+  anonymizedAt    DateTime?      // set when erased on request / retention
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([phone])
+  @@index([email])
+}
+
+model Company {
+  id             String          @id @default(cuid())
+  name           String
+  type           CompanyType
+  nui            String?         @unique // Kosovo fiscal number
+  vatNumber      String?
+  address        String?
+  city           String?
+  country        String          @default("XK")
+  billingEmail   String?
+  paymentTermsDays Int           @default(30)
+  monthlyInvoicing Boolean       @default(false)
+  isActive       Boolean         @default(true)
+  customers      Customer[]
+  users          User[]
+  contractPrices ContractPrice[]
+  orders         Order[]
+  invoices       Invoice[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Vehicle {
+  id         String      @id @default(cuid())
+  customerId String?
+  customer   Customer?   @relation(fields: [customerId], references: [id])
+  type       VehicleType
+  make       String?
+  model      String?
+  year       Int?
+  plate      String?
+  vin        String?
+  color      String?
+  isDrivable Boolean     @default(true)
+  condition  String?     // free text: "front damage, airbags deployed"
+  orders     Order[]
+  createdAt  DateTime    @default(now())
+
+  @@index([plate])
+  @@index([vin])
+}
+
+// ───────────────────────────── Orders ─────────────────────────────
+
+model Order {
+  id              String        @id @default(cuid())
+  number          String        @unique // AB-2026-000123
+  status          OrderStatus   @default(RECEIVED)
+  priority        OrderPriority @default(NORMAL)
+  service         ServiceType
+  channel         OrderChannel
+  leadSource      String?       // utm_source / referrer / "google_ads"
+  locale          Locale        @default(sq)
+
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  companyId       String?
+  company         Company?      @relation(fields: [companyId], references: [id])
+  vehicleId       String?
+  vehicle         Vehicle?      @relation(fields: [vehicleId], references: [id])
+
+  // Locations
+  pickupAddress   String
+  pickupLat       Float?
+  pickupLng       Float?
+  pickupCountry   String        @default("XK")
+  dropoffAddress  String?
+  dropoffLat      Float?
+  dropoffLng      Float?
+  dropoffCountry  String?       @default("XK")
+  distanceKm      Decimal?      @db.Decimal(8, 1)
+  durationMin     Int?
+
+  // Timing
+  isAsap          Boolean       @default(false)
+  requestedAt     DateTime?     // planned pickup time
+  windowStart     DateTime?     // international date window
+  windowEnd       DateTime?
+
+  // Options
+  options         Json          // { enclosed, express, night, weekend, winch, highway, customs, exportPlates }
+
+  // Prices (cents). estimate from calculator, final confirmed by operator.
+  estimatedCents  Int?
+  finalCents      Int?
+  currency        String        @default("EUR")
+
+  // Customer-facing tracking (phase 2): order number + last digits of phone
+  trackingToken   String        @unique @default(cuid())
+
+  bookingDraft    Json?         // autosave of the wizard while status = DRAFT
+  confirmedAt     DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+
+  statusEvents    OrderStatusEvent[]
+  assignments     Assignment[]
+  inspections     Inspection[]
+  quotes          Quote[]
+  invoices        Invoice[]
+  documents       Document[]
+  notes           OrderNote[]
+  review          Review?
+  payments        Payment[]
+  discountCodeId  String?
+  discountCode    DiscountCode? @relation(fields: [discountCodeId], references: [id])
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status, priority])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model OrderStatusEvent {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  from      OrderStatus?
+  to        OrderStatus
+  actorId   String?     // user id; null = customer/system
+  lat       Float?
+  lng       Float?
+  note      String?
+  createdAt DateTime    @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model OrderNote {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+}
+
+// ───────────────────────────── Fleet & dispatch ─────────────────────────────
+
+model Truck {
+  id                  String       @id @default(cuid())
+  plate               String       @unique
+  name                String?      // "Flatbed 1"
+  kind                String       // flatbed, wheel-lift, car carrier (2-8 cars), enclosed
+  capacityVehicles    Int          @default(1)
+  maxWeightKg         Int?
+  hasWinch            Boolean      @default(false)
+  isEnclosed          Boolean      @default(false)
+  isActive            Boolean      @default(true)
+  registrationExpires DateTime?
+  insuranceExpires    DateTime?
+  inspectionExpires   DateTime?
+  nextServiceAt       DateTime?
+  nextServiceKm       Int?
+  odometerKm          Int?
+  photoKey            String?      // R2 object key
+  assignments         Assignment[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model Driver {
+  id               String          @id @default(cuid())
+  userId           String          @unique
+  user             User            @relation(fields: [userId], references: [id])
+  licenseNumber    String?
+  licenseCategory  LicenseCategory
+  licenseExpires   DateTime
+  cpcExpires       DateTime?       // driver qualification card
+  isActive         Boolean         @default(true)
+  shifts           DriverShift[]
+  assignments      Assignment[]
+  inspections      Inspection[]
+  // Phase 3 live GPS: latest position, only written during an active shift/job
+  lastLat          Float?
+  lastLng          Float?
+  lastSeenAt       DateTime?
+}
+
+model DriverShift {
+  id        String   @id @default(cuid())
+  driverId  String
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  startsAt  DateTime
+  endsAt    DateTime
+  isOnCall  Boolean  @default(false) // 24/7 emergency rota
+  note      String?
+
+  @@index([driverId, startsAt])
+}
+
+model Assignment {
+  id           String    @id @default(cuid())
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId     String
+  driver       Driver    @relation(fields: [driverId], references: [id])
+  truckId      String
+  truck        Truck     @relation(fields: [truckId], references: [id])
+  plannedStart DateTime
+  plannedEnd   DateTime
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  kmStart      Int?
+  kmEnd        Int?
+  isActive     Boolean   @default(true) // false when reassigned
+  assignedById String?
+  createdAt    DateTime  @default(now())
+
+  // conflict detection queries overlapping [plannedStart, plannedEnd) per driver/truck
+  @@index([driverId, plannedStart, plannedEnd])
+  @@index([truckId, plannedStart, plannedEnd])
+}
+
+// ───────────────────────────── Inspections (phase 2) ─────────────────────────────
+
+model Inspection {
+  id             String            @id @default(cuid())
+  orderId        String
+  order          Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId       String
+  driver         Driver            @relation(fields: [driverId], references: [id])
+  kind           InspectionKind
+  odometerKm     Int?
+  fuelLevel      Int?              // 0-100
+  damageMarkers  Json?             // [{ x, y, view: "top|left|...", note }]
+  notes          String?
+  signerName     String?
+  signatureKey   String?           // R2 key of PNG signature
+  signedAt       DateTime?
+  lat            Float?
+  lng            Float?
+  photos         InspectionPhoto[]
+  purgeAfter     DateTime?         // set from retention settings
+  createdAt      DateTime          @default(now())
+
+  @@unique([orderId, kind])
+}
+
+model InspectionPhoto {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  angle        PhotoAngle
+  objectKey    String     // R2 key, never public
+  takenAt      DateTime
+  lat          Float?
+  lng          Float?
+  sha256       String     // tamper evidence
+  createdAt    DateTime   @default(now())
+}
+
+// ───────────────────────────── Pricing ─────────────────────────────
+
+model PricingRule {
+  id          String          @id @default(cuid())
+  key         String          // "base", "per_km", "night", "weekend", "holiday", "non_drivable", "winch", "waiting", "toll", "enclosed", "express", "vehicle_luxury"
+  name        String
+  kind        PricingRuleKind
+  amount      Int             // cents, or basis points for SURCHARGE_PERCENT (1500 = 15%)
+  service     ServiceType?    // null = all services
+  vehicleType VehicleType?    // null = all vehicle types
+  conditions  Json?           // { fromHour: 22, toHour: 6 } / { minKm, maxKm }
+  priority    Int             @default(100) // evaluation order
+  isActive    Boolean         @default(true)
+  validFrom   DateTime?
+  validTo     DateTime?
+  updatedAt   DateTime        @updatedAt
+
+  @@index([isActive, service])
+}
+
+model RouteTariff {
+  id            String       @id @default(cuid())
+  fromCountry   String       // ISO-3166 alpha-2: DE, CH, AT
+  fromCity      String?      // null = whole country
+  toCountry     String       @default("XK")
+  toCity        String?
+  vehicleType   VehicleType?
+  priceCents    Int
+  enclosedCents Int?         // price for enclosed transport
+  transitDays   Int?         // indicative
+  includesCustoms Boolean    @default(false)
+  isActive      Boolean      @default(true)
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([fromCountry, fromCity, toCountry, toCity, vehicleType])
+}
+
+model ContractPrice {
+  id          String       @id @default(cuid())
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  service     ServiceType
+  vehicleType VehicleType?
+  baseCents   Int?
+  perKmCents  Int?
+  discountBp  Int?         // basis points off list price
+  validFrom   DateTime     @default(now())
+  validTo     DateTime?
+}
+
+model DiscountCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  percentBp   Int?
+  fixedCents  Int?
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  validFrom   DateTime?
+  validTo     DateTime?
+  isActive    Boolean   @default(true)
+  orders      Order[]
+  quotes      Quote[]
+}
+
+model Holiday {
+  id     String   @id @default(cuid())
+  date   DateTime @db.Date @unique
+  name   String
+}
+
+model Quote {
+  id             String       @id @default(cuid())
+  number         String?      @unique // set when SENT (Q-2026-000045)
+  orderId        String?
+  order          Order?       @relation(fields: [orderId], references: [id])
+  status         QuoteStatus  @default(ESTIMATE)
+  input          Json         // calculator input snapshot
+  breakdown      Json         // [{ ruleKey, label, cents }] from the engine
+  subtotalCents  Int
+  vatCents       Int
+  totalCents     Int
+  discountCodeId String?
+  discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id])
+  validUntil     DateTime?
+  convertedAt    DateTime?    // for quote -> booking conversion report
+  sessionId      String?      // anonymous visitor id (only with analytics consent)
+  createdAt      DateTime     @default(now())
+
+  @@index([createdAt])
+}
+
+// ───────────────────────────── Invoicing ─────────────────────────────
+
+model Invoice {
+  id             String        @id @default(cuid())
+  kind           InvoiceKind   @default(INVOICE)
+  number         String?       @unique // assigned on issue, gapless per series/year
+  series         String        @default("AB")
+  year           Int
+  sequence       Int?
+  status         InvoiceStatus @default(DRAFT)
+  orderId        String?       // null for monthly B2B invoices covering many orders
+  order          Order?        @relation(fields: [orderId], references: [id])
+  customerId     String?
+  customer       Customer?     @relation(fields: [customerId], references: [id])
+  companyId      String?
+  company        Company?      @relation(fields: [companyId], references: [id])
+  creditedInvoiceId String?    // for credit notes
+  // Snapshot of buyer + seller at issue time (invoices are immutable once issued)
+  sellerSnapshot Json
+  buyerSnapshot  Json
+  issueDate      DateTime?
+  dueDate        DateTime?
+  subtotalCents  Int           @default(0)
+  vatCents       Int           @default(0)
+  totalCents     Int           @default(0)
+  paidCents      Int           @default(0)
+  currency       String        @default("EUR")
+  pdfKey         String?       // R2 key of the issued PDF
+  lastReminderAt DateTime?
+  lines          InvoiceLine[]
+  payments       Payment[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([series, year, sequence])
+  @@index([status, dueDate])
+}
+
+model InvoiceLine {
+  id             String  @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  position       Int
+  description    String
+  quantity       Decimal @db.Decimal(10, 2)
+  unit           String  @default("copë") // km, orë, copë
+  unitPriceCents Int
+  vatRateBp      Int     @default(1800)   // 18.00%
+  netCents       Int
+  vatCents       Int
+  grossCents     Int
+  orderId        String? // which order a monthly-invoice line belongs to
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  invoiceId       String?
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+  orderId         String?
+  order           Order?        @relation(fields: [orderId], references: [id])
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  amountCents     Int
+  currency        String        @default("EUR")
+  stripePaymentIntentId String? @unique
+  bankReference   String?
+  receivedById    String?       // driver/user who recorded cash
+  receivedAt      DateTime?
+  createdAt       DateTime      @default(now())
+}
+
+// Gapless counters for order / quote / invoice numbers, updated in a transaction with SELECT ... FOR UPDATE
+model Counter {
+  key   String @id // "order:2026", "invoice:AB:2026"
+  value Int    @default(0)
+}
+
+// ───────────────────────────── Documents, reviews, consents ─────────────────────────────
+
+model Document {
+  id          String       @id @default(cuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type        DocumentType
+  objectKey   String       // R2 key, encrypted bucket
+  fileName    String
+  mimeType    String
+  sizeBytes   Int
+  uploadedById String?     // null = uploaded by customer
+  purgeAfter  DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([orderId, type])
+}
+
+model Review {
+  id         String    @id @default(cuid())
+  orderId    String    @unique
+  order      Order     @relation(fields: [orderId], references: [id])
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  rating     Int       // 1-5
+  comment    String?
+  isPublished Boolean  @default(false)
+  requestedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model Consent {
+  id          String      @id @default(cuid())
+  customerId  String?
+  customer    Customer?   @relation(fields: [customerId], references: [id])
+  visitorId   String?     // cookie consent before we know the customer
+  type        ConsentType
+  granted     Boolean
+  policyVersion String    // e.g. "privacy-2026-10"
+  ip          String?     // truncated (/24)
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([customerId, type])
+}
+
+model PrivacyRequest {
+  id          String             @id @default(cuid())
+  customerId  String?
+  customer    Customer?          @relation(fields: [customerId], references: [id])
+  type        PrivacyRequestType
+  contact     String             // phone/email used to verify
+  verifiedAt  DateTime?
+  completedAt DateTime?
+  exportKey   String?            // R2 key of the export zip
+  handledById String?
+  createdAt   DateTime           @default(now())
+}
+
+// ───────────────────────────── Notifications ─────────────────────────────
+
+model NotificationTemplate {
+  id       String         @id @default(cuid())
+  event    String         // booking_received, confirmed, driver_assigned, en_route, picked_up, delivered, invoice, payment_received, review_request
+  channel  ContactChannel
+  locale   Locale
+  subject  String?
+  body     String         // ICU message with {orderNumber}, {price}, {driverName}, {truckPlate}, {trackUrl}
+  isActive Boolean        @default(true)
+
+  @@unique([event, channel, locale])
+}
+
+model NotificationOutbox {
+  id          String             @id @default(cuid())
+  event       String
+  channel     ContactChannel
+  to          String
+  payload     Json
+  orderId     String?
+  status      NotificationStatus @default(PENDING)
+  attempts    Int                @default(0)
+  lastError   String?
+  providerId  String?
+  sendAfter   DateTime           @default(now())
+  sentAt      DateTime?
+  createdAt   DateTime           @default(now())
+
+  @@index([status, sendAfter])
+}
+
+// ───────────────────────────── CMS & settings ─────────────────────────────
+
+model Setting {
+  key       String   @id // "company.nui", "retention.inspectionPhotosDays", "vat.rateBp", "contact.whatsapp"
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model ContentPage {
+  id          String   @id @default(cuid())
+  slug        String   // "services/emergency-towing", "legal/privacy"
+  locale      Locale
+  title       String
+  metaTitle   String?
+  metaDescription String?
+  blocks      Json     // structured sections edited in admin
+  isPublished Boolean  @default(false)
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([slug, locale])
+}
+
+model ServiceArea {
+  id        String   @id @default(cuid())
+  slug      String   @unique // "peje", "prishtine", "gjakove"
+  name      Json     // { sq: "Pejë", en: "Peja", de: "Peja" }
+  lat       Float
+  lng       Float
+  intro     Json?    // per-locale unique copy for SEO
+  isActive  Boolean  @default(true)
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  locale    Locale
+  question  String
+  answer    String
+  category  String?
+  position  Int      @default(0)
+  isPublished Boolean @default(true)
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  slug        String
+  locale      Locale
+  title       String
+  excerpt     String?
+  body        String    // MDX/markdown
+  coverKey    String?
+  authorName  String?
+  publishedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([slug, locale])
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  objectKey String   @unique // public bucket for site images
+  alt       Json     // per-locale alt text (WCAG)
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+}

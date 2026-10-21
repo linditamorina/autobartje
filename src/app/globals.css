@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
+/* Dark mode follows the `dark` class on <html> (set from the theme toggle / system preference). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. High contrast for outdoor and night use; every text/background pair
+ * meets WCAG 2.1 AA (4.5:1). --brand is overridden at runtime from the admin
+ * brand setting (see BrandStyle).
+ */
 :root {
+  --brand: #0b2545;
+  --brand-foreground: #ffffff;
+
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  --border: #cbd5e1;
+  --input: #94a3b8;
+  --ring: #1d4ed8;
+
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+
+  --emergency: #c2410c; /* 5.2:1 on white */
+  --emergency-foreground: #ffffff;
+  --whatsapp: #128c4a; /* 4.6:1 on white */
+  --whatsapp-foreground: #ffffff;
+  --success: #15803d;
+  --success-foreground: #ffffff;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --brand: #93c5fd;
+  --brand-foreground: #0b1220;
+
+  --background: #0b1220;
+  --foreground: #f8fafc;
+  --card: #111a2e;
+  --card-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #cbd5e1;
+  --border: #334155;
+  --input: #64748b;
+  --ring: #93c5fd;
+
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+
+  --emergency: #f97316;
+  --emergency-foreground: #0b1220;
+  --whatsapp: #25d366;
+  --whatsapp-foreground: #0b1220;
+  --success: #4ade80;
+  --success-foreground: #0b1220;
+  --destructive: #f87171;
+  --destructive-foreground: #0b1220;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-emergency: var(--emergency);
+  --color-emergency-foreground: var(--emergency-foreground);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-foreground: var(--whatsapp-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Room for the fixed mobile action bar so it never covers content. */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

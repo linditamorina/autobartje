@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# autobartje
 
-## Getting Started
+Website, booking system and back office for a 24/7 towing and car transport company in Pejë, Kosovo:
+emergency towing, roadside assistance, domestic transport and car import from Germany, Switzerland and Austria.
 
-First, run the development server:
+The architecture, database design and phase plan were reviewed and approved before coding
+([review document](https://claude.ai/artifact/GnWNdwFRvhAf2BeQUSxsVM)).
+
+## Stack
+
+Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 + shadcn/ui-style components · PostgreSQL 16 + Prisma 7 ·
+Auth.js · next-intl (sq default, en, de) · Cloudflare R2 · Resend · SMS provider abstraction (Infobip) ·
+Google Maps · Cloudflare Turnstile · Sentry · Vitest · Playwright.
+
+## Getting started
+
+Requirements: Node 22, Docker (or a local PostgreSQL 16).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env            # fill in at least DATABASE_URL and AUTH_SECRET
+docker compose up -d db minio   # Postgres + S3-compatible storage
+npm install                     # also generates the Prisma client
+npx prisma migrate dev          # create tables
+npx prisma db seed              # roles, owner account, prices, cities, demo data
+npm run dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The seed creates the owner account from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. Two-factor
+authentication is required for Owner and Admin and is set up on first login.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build / server |
+| `npm test` | Unit tests (pricing engine, invoicing, permissions, translations) |
+| `npm run test:e2e` | Playwright tests at 360px and desktop (builds must exist: run `npm run build` first) |
+| `npm run typecheck` / `npm run lint` | Type check / lint |
+| `npm run db:migrate` / `npm run db:seed` | Prisma migrations / seed |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+```text
+prisma/            schema.prisma, migrations, seed.ts
+messages/          UI translations (sq, en, de)
+src/app/[locale]/  public website (localised routes; sq has no URL prefix)
+src/app/admin/     back office (coming in phase 1)
+src/app/api/       route handlers: consent log, uploads, webhooks, cron
+src/components/    ui/ primitives, marketing/, shared/
+src/server/        business logic without React: pricing, invoicing, settings, auth, db
+src/lib/           shared helpers: money, contact links, consent, SEO
+tests/e2e/         Playwright tests
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key design decisions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Money** is stored as integer euro cents. VAT (18 %) is calculated and rounded per invoice line.
+- **Pricing rules are data**, edited in admin. `src/server/pricing/engine.ts` is a pure function with unit tests
+  covering base fee, €/km, night/weekend/holiday surcharges, options, minimum price, discount codes,
+  B2B contract prices and fixed international route tariffs.
+- **Brand name, logo and colour** are settings (`brand.*` in the `Setting` table), editable in admin and
+  shown on the site, invoices and emails. Until changed, the built-in logo and the name "autobartje" are used.
+- **Privacy**: no analytics or marketing scripts load before cookie consent; "Reject" is as prominent as "Accept";
+  each choice is logged in `Consent` with a truncated IP. Retention periods are settings.
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
+Postgres database in an EU region, and run `npx prisma migrate deploy` as part of the build command.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Docker:** `docker build -t autobartje .` then run with the same environment variables. The container applies
+pending migrations on start.
+
+## Phase plan
+
+1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
+2. Driver PWA with inspections, order tracking page, online payments, B2B portal.
+3. Live GPS, advanced analytics, partner API.

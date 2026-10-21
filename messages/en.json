@@ -1,0 +1,92 @@
+{
+  "Meta": {
+    "title": "{brand}: 24/7 towing in Peja and across Kosovo",
+    "description": "24/7 towing and roadside assistance, car transport within Kosovo and car import from Germany, Switzerland and Austria. Instant online quote."
+  },
+  "Nav": {
+    "services": "Services",
+    "import": "Car import",
+    "pricing": "Pricing",
+    "fleet": "Fleet",
+    "about": "About",
+    "contact": "Contact",
+    "quote": "Get a quote",
+    "menu": "Menu",
+    "close": "Close",
+    "skipToContent": "Skip to content"
+  },
+  "ActionBar": {
+    "label": "Quick actions",
+    "call": "Call 24/7",
+    "whatsapp": "WhatsApp",
+    "location": "Send my location",
+    "locating": "Locating…",
+    "locationError": "We couldn't get your location. Allow location access or call us.",
+    "whatsappText": "Hello, I need help with my vehicle.",
+    "locationText": "Hello, I need a tow. My location: {link}"
+  },
+  "Hero": {
+    "badge": "Available 24 hours, 7 days",
+    "title": "Towing and car transport, whenever you need it",
+    "subtitle": "From Peja across Kosovo, and from Europe to your door. We arrive in {minutes} minutes on average.",
+    "emergencyTitle": "Emergency now",
+    "emergencyText": "Broken down or had an accident? Call or send your location with one tap.",
+    "emergencyCall": "Call now",
+    "plannedTitle": "Planned transport",
+    "plannedText": "Transport within Kosovo or import from Germany, Switzerland, Austria. See your price instantly.",
+    "plannedCta": "Get instant price"
+  },
+  "Services": {
+    "title": "Our services",
+    "emergencyTowing": "24/7 emergency towing",
+    "emergencyTowingText": "Accident, engine failure, car won't start: we come day and night.",
+    "roadside": "Roadside assistance",
+    "roadsideText": "Battery, tyre, fuel, lockout and winch recovery.",
+    "domestic": "Transport within Kosovo",
+    "domesticText": "City to city, to the garage, or to the new owner.",
+    "international": "Import from Europe",
+    "internationalText": "Germany, Switzerland, Austria → Kosovo, with customs and export plate help.",
+    "more": "Learn more"
+  },
+  "Trust": {
+    "title": "Why customers choose us",
+    "years": "years of experience",
+    "vehicles": "vehicles moved",
+    "arrival": "minutes average arrival",
+    "insured": "Licensed and insured",
+    "insuredText": "Every vehicle is insured while in our care."
+  },
+  "Footer": {
+    "rights": "All rights reserved.",
+    "legal": "Legal",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "cookies": "Cookie policy",
+    "cookieSettings": "Cookie settings",
+    "nui": "Fiscal no."
+  },
+  "Consent": {
+    "title": "Cookies",
+    "text": "We use necessary cookies to make the site work. With your permission we also use analytics and marketing cookies.",
+    "accept": "Accept all",
+    "reject": "Reject",
+    "customize": "Choose",
+    "save": "Save choice",
+    "necessary": "Necessary (always on)",
+    "analytics": "Analytics",
+    "marketing": "Marketing",
+    "more": "More in the cookie policy"
+  },
+  "Common": {
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "finalPriceNote": "Final price is confirmed by the operator."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "text": "This page doesn't exist or has moved.",
+    "home": "Back to home"
+  }
+}

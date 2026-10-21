@@ -1,0 +1,92 @@
+{
+  "Meta": {
+    "title": "{brand}: Abschleppdienst 24/7 in Peja und im ganzen Kosovo",
+    "description": "Abschleppdienst und Pannenhilfe rund um die Uhr, Fahrzeugtransport im Kosovo und Autoimport aus Deutschland, der Schweiz und Österreich. Sofortiges Online-Angebot."
+  },
+  "Nav": {
+    "services": "Leistungen",
+    "import": "Autoimport",
+    "pricing": "Preise",
+    "fleet": "Fuhrpark",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "quote": "Angebot erhalten",
+    "menu": "Menü",
+    "close": "Schließen",
+    "skipToContent": "Zum Inhalt springen"
+  },
+  "ActionBar": {
+    "label": "Schnellaktionen",
+    "call": "Anrufen 24/7",
+    "whatsapp": "WhatsApp",
+    "location": "Standort senden",
+    "locating": "Standort wird ermittelt…",
+    "locationError": "Wir konnten Ihren Standort nicht ermitteln. Erlauben Sie den Standortzugriff oder rufen Sie uns an.",
+    "whatsappText": "Hallo, ich brauche Hilfe mit meinem Fahrzeug.",
+    "locationText": "Hallo, ich brauche einen Abschleppdienst. Mein Standort: {link}"
+  },
+  "Hero": {
+    "badge": "Rund um die Uhr erreichbar",
+    "title": "Abschleppen und Fahrzeugtransport, wann immer Sie es brauchen",
+    "subtitle": "Von Peja in den ganzen Kosovo und aus Europa bis vor Ihre Tür. Im Schnitt sind wir in {minutes} Minuten da.",
+    "emergencyTitle": "Notfall jetzt",
+    "emergencyText": "Panne oder Unfall? Rufen Sie an oder senden Sie Ihren Standort mit einem Tippen.",
+    "emergencyCall": "Jetzt anrufen",
+    "plannedTitle": "Geplanter Transport",
+    "plannedText": "Transport im Kosovo oder Import aus Deutschland, der Schweiz, Österreich. Preis sofort sehen.",
+    "plannedCta": "Preis berechnen"
+  },
+  "Services": {
+    "title": "Unsere Leistungen",
+    "emergencyTowing": "Notfall-Abschleppdienst 24/7",
+    "emergencyTowingText": "Unfall, Motorschaden, Auto springt nicht an: Wir kommen Tag und Nacht.",
+    "roadside": "Pannenhilfe",
+    "roadsideText": "Batterie, Reifen, Kraftstoff, Türöffnung und Bergung mit Seilwinde.",
+    "domestic": "Transport im Kosovo",
+    "domesticText": "Von Stadt zu Stadt, in die Werkstatt oder zum neuen Besitzer.",
+    "international": "Import aus Europa",
+    "internationalText": "Deutschland, Schweiz, Österreich → Kosovo, mit Hilfe bei Zoll und Ausfuhrkennzeichen.",
+    "more": "Mehr erfahren"
+  },
+  "Trust": {
+    "title": "Warum Kunden uns wählen",
+    "years": "Jahre Erfahrung",
+    "vehicles": "transportierte Fahrzeuge",
+    "arrival": "Minuten durchschnittliche Ankunft",
+    "insured": "Lizenziert und versichert",
+    "insuredText": "Jedes Fahrzeug ist während des Transports versichert."
+  },
+  "Footer": {
+    "rights": "Alle Rechte vorbehalten.",
+    "legal": "Rechtliches",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutzerklärung",
+    "cookies": "Cookie-Richtlinie",
+    "cookieSettings": "Cookie-Einstellungen",
+    "nui": "Steuernummer"
+  },
+  "Consent": {
+    "title": "Cookies",
+    "text": "Wir verwenden notwendige Cookies, damit die Website funktioniert. Mit Ihrer Zustimmung verwenden wir auch Analyse- und Marketing-Cookies.",
+    "accept": "Alle akzeptieren",
+    "reject": "Ablehnen",
+    "customize": "Auswählen",
+    "save": "Auswahl speichern",
+    "necessary": "Notwendig (immer aktiv)",
+    "analytics": "Analyse",
+    "marketing": "Marketing",
+    "more": "Mehr in der Cookie-Richtlinie"
+  },
+  "Common": {
+    "language": "Sprache",
+    "theme": "Design",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "finalPriceNote": "Der Endpreis wird vom Disponenten bestätigt."
+  },
+  "NotFound": {
+    "title": "Seite nicht gefunden",
+    "text": "Diese Seite existiert nicht oder wurde verschoben.",
+    "home": "Zur Startseite"
+  }
+}
