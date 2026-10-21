@@ -1,0 +1,20 @@
+import "server-only";
+
+/**
+ * Verifies a Cloudflare Turnstile token. Without TURNSTILE_SECRET_KEY (local
+ * development) every request passes; in production the key must be set.
+ */
+export async function verifyTurnstile(token: string | null | undefined, ip: string | null): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return process.env.NODE_ENV !== "production";
+  if (!token) return false;
+  try {
+    const body = new URLSearchParams({ secret, response: token });
+    if (ip) body.set("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body, signal: AbortSignal.timeout(5000) });
+    const data = (await res.json()) as { success?: boolean };
+    return data.success === true;
+  } catch {
+    return false;
+  }
+}
