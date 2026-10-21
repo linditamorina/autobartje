@@ -7,6 +7,15 @@ import type { NotificationEvent } from "./events";
 import { ProviderNotConfigured, sendEmail, sendSms } from "./providers";
 import { emailHtml, renderMessage, toGsm, type RenderContext } from "./templates";
 import { MAX_ATTEMPTS, retryDelayMin } from "./retry";
+import { invoiceDoc } from "@/server/invoicing/manage";
+import { renderInvoicePdf } from "@/server/invoicing/pdf";
+
+/** Invoice emails carry the PDF, rendered from the frozen invoice data at send time. */
+async function attachmentsFor(event: string, payload: Record<string, unknown>) {
+  if (event !== "invoice_issued" || typeof payload.invoiceId !== "string") return undefined;
+  const doc = await invoiceDoc(payload.invoiceId);
+  return doc ? [{ filename: `${doc.number}.pdf`, content: await renderInvoicePdf(doc) }] : undefined;
+}
 
 /** While a row is being sent it is leased: another worker skips it until the lease runs out. */
 const LEASE_MIN = 5;
@@ -49,7 +58,13 @@ export async function processOutbox(limit = 25): Promise<{ sent: number; failed:
       // WhatsApp Business API arrives in phase 2; until then WhatsApp customers get an SMS.
       const providerId =
         row.channel === "EMAIL"
-          ? await sendEmail({ to: row.to, subject: rendered.subject, text: rendered.text, html: emailHtml(rendered, ctx) })
+          ? await sendEmail({
+              to: row.to,
+              subject: rendered.subject,
+              text: rendered.text,
+              html: emailHtml(rendered, ctx),
+              attachments: await attachmentsFor(row.event, (row.payload ?? {}) as Record<string, unknown>),
+            })
           : await sendSms({ to: row.to, text: toGsm(rendered.text) });
       await db.notificationOutbox.update({ where: { id: row.id }, data: { status: "SENT", sentAt: new Date(), providerId, lastError: null } });
       result.sent++;

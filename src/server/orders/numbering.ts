@@ -1,5 +1,6 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
+import { businessDate } from "@/lib/time";
 
 /**
  * Next value of a gapless counter. Runs as INSERT … ON CONFLICT DO UPDATE, so
@@ -14,7 +15,8 @@ export async function nextSequence(tx: Prisma.TransactionClient, key: string): P
 }
 
 export async function nextOrderNumber(tx: Prisma.TransactionClient, now = new Date()): Promise<string> {
-  const year = now.getFullYear();
+  // Year in Kosovo time, so orders taken just after midnight on 1 January get the new year.
+  const year = Number(businessDate(now).slice(0, 4));
   const seq = await nextSequence(tx, `order:${year}`);
   return `P-${year}-${String(seq).padStart(5, "0")}`;
 }

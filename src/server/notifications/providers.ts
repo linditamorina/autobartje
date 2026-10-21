@@ -9,17 +9,24 @@ export class ProviderNotConfigured extends Error {}
 
 const isProd = () => process.env.NODE_ENV === "production" && process.env.NOTIFY_DRY_RUN !== "1";
 
-export async function sendEmail(m: { to: string; subject: string; html: string; text: string }): Promise<string> {
+export async function sendEmail(m: { to: string; subject: string; html: string; text: string; attachments?: { filename: string; content: Uint8Array }[] }): Promise<string> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     if (isProd()) throw new ProviderNotConfigured("RESEND_API_KEY is not set");
-    console.info(`[email:console] to=${m.to} subject=${JSON.stringify(m.subject)}\n${m.text}`);
+    console.info(`[email:console] to=${m.to} subject=${JSON.stringify(m.subject)}${m.attachments?.length ? ` attachments=${m.attachments.map((a) => a.filename).join(",")}` : ""}\n${m.text}`);
     return "console";
   }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM ?? "no-reply@example.com", to: [m.to], subject: m.subject, html: m.html, text: m.text }),
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM ?? "no-reply@example.com",
+      to: [m.to],
+      subject: m.subject,
+      html: m.html,
+      text: m.text,
+      attachments: m.attachments?.map((a) => ({ filename: a.filename, content: Buffer.from(a.content).toString("base64") })),
+    }),
     signal: AbortSignal.timeout(10_000),
   });
   const body = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
