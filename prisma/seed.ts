@@ -118,6 +118,22 @@ async function main() {
     });
   }
 
+  // Demo business customer with a contract price and a portal login
+  const dealer =
+    (await db.company.findUnique({ where: { nui: "811234567" } })) ??
+    (await db.company.create({
+      data: {
+        name: "Auto Dukagjini SH.P.K.", type: "CAR_DEALER", nui: "811234567", address: "Rruga Eliot Engel", city: "Pejë", billingEmail: "fatura@example.com", monthlyInvoicing: true,
+        contractPrices: { create: { service: "DOMESTIC_TRANSPORT", baseCents: 2500, perKmCents: 70 } },
+      },
+    }));
+  const b2bRole = await db.role.findUniqueOrThrow({ where: { key: "B2B_USER" } });
+  await db.user.upsert({
+    where: { email: "dealer@example.com" },
+    update: {},
+    create: { email: "dealer@example.com", name: "Besnik Dukagjini", phone: "+38344000201", roleId: b2bRole.id, companyId: dealer.id, passwordHash: await hash("portal-demo-password") },
+  });
+
   // FAQ
   if ((await db.faqItem.count()) === 0) {
     await db.faqItem.createMany({

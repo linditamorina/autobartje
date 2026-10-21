@@ -27,6 +27,24 @@ const SERVICE_SQ: Record<string, string> = {
   INTERNATIONAL_TRANSPORT: "Transport ndërkombëtar automjeti",
 };
 
+type LineOrder = {
+  number: string;
+  service: string;
+  pickupAddress: string;
+  dropoffAddress: string | null;
+  distanceKm: unknown;
+  customerRef?: string | null;
+  vehicle: { make: string | null; model: string | null; plate: string | null } | null;
+};
+
+/** One invoice line text per order: service and number, route, vehicle, distance, the customer's reference. */
+export function orderLineDescription(order: LineOrder): string {
+  const vehicle = order.vehicle ? [order.vehicle.make, order.vehicle.model, order.vehicle.plate].filter(Boolean).join(" ") : "";
+  const route = [order.pickupAddress, order.dropoffAddress].filter(Boolean).join(" → ");
+  const ref = order.customerRef ? `ref. ${order.customerRef}` : "";
+  return [`${SERVICE_SQ[order.service]} ${order.number}`, route, vehicle, order.distanceKm ? `${order.distanceKm} km` : "", ref].filter(Boolean).join(", ");
+}
+
 /** Draft invoice for one order: one line at the confirmed price (VAT included), buyer from the company or customer. */
 export async function createInvoiceFromOrder(orderId: string, actorId: string) {
   return db.$transaction(async (tx) => {
@@ -41,9 +59,7 @@ export async function createInvoiceFromOrder(orderId: string, actorId: string) {
     const buyer: Buyer = c
       ? { name: c.name, nui: c.nui, address: c.address, city: c.city, email: c.billingEmail, phone: null }
       : { name: order.customer.fullName, nui: null, address: null, city: null, email: order.customer.email, phone: order.customer.phone };
-    const vehicle = order.vehicle ? [order.vehicle.make, order.vehicle.model, order.vehicle.plate].filter(Boolean).join(" ") : "";
-    const route = [order.pickupAddress, order.dropoffAddress].filter(Boolean).join(" → ");
-    const description = [`${SERVICE_SQ[order.service]} ${order.number}`, route, vehicle, order.distanceKm ? `${order.distanceKm} km` : ""].filter(Boolean).join(", ");
+    const description = orderLineDescription(order);
     // Customers are quoted prices with VAT included: invoice exactly that amount.
     const totals = calculateInvoice([{ description, quantity: 1, unit: "shërbim", unitPriceCents: gross, vatRateBp: s["vat.rateBp"] }], { pricesIncludeVat: true });
 
@@ -68,7 +84,7 @@ export async function createInvoiceFromOrder(orderId: string, actorId: string) {
   });
 }
 
-function toLineRow(l: ReturnType<typeof calculateInvoice>["lines"][number]) {
+export function toLineRow(l: ReturnType<typeof calculateInvoice>["lines"][number]) {
   return { position: l.position, description: l.description, quantity: l.quantity, unit: l.unit, unitPriceCents: l.unitPriceCents, vatRateBp: l.vatRateBp, netCents: l.netCents, vatCents: l.vatCents, grossCents: l.grossCents };
 }
 

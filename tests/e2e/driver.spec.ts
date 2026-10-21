@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { hash } from "@node-rs/argon2";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client";
+import { ensureStaff, login } from "./helpers";
 
 const DRIVER_EMAIL = "driton@example.com";
 const DRIVER_PASSWORD = "driver-demo-password";
@@ -17,12 +17,7 @@ async function setup() {
   try {
     const driverUser = await db.user.update({ where: { email: DRIVER_EMAIL }, data: { failedLogins: 0, lockedUntil: null }, include: { driver: true } });
     const truck = await db.truck.findUniqueOrThrow({ where: { plate: "03-789-AB" } });
-    const dispatcher = await db.role.findUniqueOrThrow({ where: { key: "DISPATCHER" } });
-    await db.user.upsert({
-      where: { email: OFFICE_EMAIL },
-      update: { failedLogins: 0, lockedUntil: null },
-      create: { email: OFFICE_EMAIL, name: "E2E Dispatcher", roleId: dispatcher.id, passwordHash: await hash(OFFICE_PASSWORD) },
-    });
+    await ensureStaff("DISPATCHER", OFFICE_EMAIL, OFFICE_PASSWORD);
     const stamp = String(Date.now()).slice(-6);
     const customer = await db.customer.create({ data: { fullName: `E2E Driver Customer ${stamp}`, phone: `+38349${stamp}` } });
     const order = await db.order.create({
@@ -48,13 +43,6 @@ async function setup() {
   } finally {
     await db.$disconnect();
   }
-}
-
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/admin/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Log in" }).click();
 }
 
 async function takePhotos(page: Page) {

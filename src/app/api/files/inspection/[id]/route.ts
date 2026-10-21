@@ -8,7 +8,8 @@ const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", web
 
 /**
  * Inspection photos and signatures. Office staff who can see orders get any of
- * them; a driver only those of a job assigned to them. `id` is a photo id, or
+ * them; a driver only those of a job assigned to them; a business customer
+ * those of their company's orders. `id` is a photo id, or
  * `sig-<inspectionId>` for the customer's signature.
  */
 export async function GET(_: Request, ctx: RouteContext<"/api/files/inspection/[id]">) {
@@ -33,7 +34,11 @@ export async function GET(_: Request, ctx: RouteContext<"/api/files/inspection/[
   const office = can(user.permissions, "orders.read");
   if (!office) {
     const assigned = can(user.permissions, "driver.jobs") && (await db.assignment.count({ where: { orderId, isActive: true, driver: { userId: user.id } } })) > 0;
-    if (!assigned) return new NextResponse(null, { status: 403 });
+    const ownCompany =
+      !assigned &&
+      can(user.permissions, "portal.orders") &&
+      (await db.order.count({ where: { id: orderId, company: { isActive: true, users: { some: { id: user.id } } } } })) > 0;
+    if (!assigned && !ownCompany) return new NextResponse(null, { status: 403 });
   }
 
   const bytes = await getPrivateObject(key);

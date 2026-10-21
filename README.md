@@ -106,6 +106,14 @@ past the retention periods set in Settings.
 - Payment goes through Stripe Checkout. The webhook books the payment once (repeated events are ignored), counts it towards the open invoice, and messages the customer with Stripe's receipt link. A full refund in Stripe marks the payment refunded and reopens the amount; partial refunds are only written to the audit log for the office to handle.
 - Card payments show on the admin order page with a link to the payment in Stripe.
 
+## Business customers (B2B portal)
+
+- Admin → Customers lists dealers, garages, insurers and leasing companies. Each company has its billing details, payment terms, contract prices and portal logins. Demo after seeding: `dealer@example.com` / `portal-demo-password`.
+- Contract prices replace the list price for that company: a base fee and/or a price per km (net), or a discount in percent, per service and optionally per vehicle type, with a validity period. Night, weekend and other surcharges still apply.
+- Portal users log in at `/admin/login` and land on `/portal`. There they see their company's open and finished orders with status, inspection photos and the tracking link to pass on, send new transport requests (priced with their contract, with their own reference number), download their invoices as PDF, and see their prices. They never see other customers' data or the office screens.
+- Companies with "One invoice per month" get one invoice for all orders delivered in a month: on the company page an accountant picks the month and creates a draft, with one line per order and the customer's reference, then issues it as usual.
+- Deactivating a company or a portal login signs those users out at once.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon

@@ -28,6 +28,7 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
     where: { id },
     include: {
       customer: true,
+      company: { select: { id: true, name: true } },
       vehicle: true,
       statusEvents: { orderBy: { createdAt: "desc" } },
       notes: { include: { author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
@@ -81,6 +82,12 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Panel title={t("customerSection")}>
+              {order.company && (
+                <p className="mb-1">
+                  <Link href={`/admin/customers/${order.company.id}`} className="font-bold underline">{order.company.name}</Link>
+                  {order.customerRef && <span className="text-sm text-muted-foreground"> · {t("customerRef")}: {order.customerRef}</span>}
+                </p>
+              )}
               <p className="font-semibold">{order.customer.fullName}</p>
               <p>{order.customer.phone}</p>
               {order.customer.email && <p>{order.customer.email}</p>}

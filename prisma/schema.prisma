@@ -372,6 +372,7 @@ model Order {
   service         ServiceType
   channel         OrderChannel
   leadSource      String?       // utm_source / referrer / "google_ads"
+  customerRef     String?       // the business customer's own reference (PO, stock number)
   locale          Locale        @default(sq)
 
   customerId      String
