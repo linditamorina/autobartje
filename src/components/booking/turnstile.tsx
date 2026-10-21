@@ -12,6 +12,7 @@ declare global {
 }
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+export const turnstileEnabled = Boolean(SITE_KEY);
 let scriptPromise: Promise<void> | null = null;
 
 function loadScript(): Promise<void> {
