@@ -5,21 +5,23 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LiveRefresh } from "@/components/tracking/live-refresh";
+import { PayButton } from "@/components/tracking/pay-button";
 import { formatPhone, telHref, whatsappHref } from "@/lib/contact";
 import { formatEur } from "@/lib/money";
 import { BUSINESS_TZ } from "@/lib/time";
 import { trackingSteps } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
 import { getTracking } from "@/server/orders/tracking";
+import { dueForToken } from "@/server/payments/stripe";
 import { getSettings } from "@/server/settings";
 
 // The link is private to the customer: never indexed, never cached, no referrer to other sites.
 export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "no-referrer" };
 
-export default async function TrackPage({ params }: PageProps<"/[locale]/track/[token]">) {
-  const { locale, token } = await params;
+export default async function TrackPage({ params, searchParams }: PageProps<"/[locale]/track/[token]">) {
+  const [{ locale, token }, sp] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
-  const [t, tsv, s, tr] = await Promise.all([getTranslations("Track"), getTranslations("Admin.service"), getSettings(), getTracking(token)]);
+  const [t, tsv, s, tr, due] = await Promise.all([getTranslations("Track"), getTranslations("Admin.service"), getSettings(), getTracking(token), dueForToken(token)]);
   if (!tr) notFound();
   const fmt = (d: Date) => new Intl.DateTimeFormat(locale, { timeZone: BUSINESS_TZ, dateStyle: "medium", timeStyle: "short" }).format(d);
 
@@ -43,7 +45,7 @@ export default async function TrackPage({ params }: PageProps<"/[locale]/track/[
 
   return (
     <div className="mx-auto max-w-xl space-y-5 px-4 py-8">
-      {live && <LiveRefresh seconds={20} />}
+      {(live || (sp.paid === "1" && due)) && <LiveRefresh seconds={sp.paid === "1" ? 5 : 20} />}
       <div>
         <p className="text-sm font-semibold text-muted-foreground">{tsv(tr.service)}</p>
         <h1 className="text-2xl font-extrabold">{t("title", { number: tr.number })}</h1>
@@ -97,6 +99,15 @@ export default async function TrackPage({ params }: PageProps<"/[locale]/track/[
           </div>
         )}
       </dl>
+
+      {sp.paid === "1" && <p role="status" className="rounded-xl border-2 border-success p-4 font-semibold">{due ? t("paidPending") : t("paidThanks")}</p>}
+      {due && (
+        <section className="space-y-2 rounded-xl border border-border bg-card p-4">
+          <h2 className="font-bold">{t("payTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("payText")}</p>
+          <PayButton token={token} amount={formatEur(due.amountCents, locale)} />
+        </section>
+      )}
 
       <div className="grid gap-2 sm:grid-cols-2">
         <Button asChild variant="emergency" size="lg">

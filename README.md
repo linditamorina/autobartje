@@ -99,6 +99,13 @@ past the retention periods set in Settings.
 - Customers without the link can open `/track` and enter the order number and the phone they booked with (rate limited per address and per order number).
 - The page shows the steps with times, the planned time, route, the driver's first name and truck, and the price. It refreshes itself every 20 seconds while open and the order is in progress. It never shows notes, staff or vehicle details, is not indexed, and stops showing details 30 days after the order is finished or as soon as the customer's data is anonymised.
 
+## Online payments (Stripe)
+
+- Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to turn them on. In the Stripe dashboard add a webhook to `https://<your domain>/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `charge.refunded`. Turn on the payment methods you want (cards, Apple Pay, Google Pay) under Settings → Payment methods.
+- Once an order is confirmed with a final price, its tracking page shows "Pay €…". After the invoice is issued, the button asks for what is still open on the invoice. The invoice email links to the same page.
+- Payment goes through Stripe Checkout. The webhook books the payment once (repeated events are ignored), counts it towards the open invoice, and messages the customer with Stripe's receipt link. A full refund in Stripe marks the payment refunded and reopens the amount; partial refunds are only written to the audit log for the office to handle.
+- Card payments show on the admin order page with a link to the payment in Stripe.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon

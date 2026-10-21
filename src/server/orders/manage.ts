@@ -69,7 +69,7 @@ export async function changeOrderStatus(
   });
 }
 
-async function notifyCustomer(
+export async function notifyCustomer(
   tx: Prisma.TransactionClient,
   c: { phone: string; email: string | null; preferredChannel: "PHONE" | "SMS" | "WHATSAPP" | "EMAIL" },
   event: Parameters<typeof enqueueNotification>[1]["event"],

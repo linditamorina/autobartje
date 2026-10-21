@@ -394,7 +394,8 @@
       "payments": "Erhaltene Zahlungen",
       "notInvoiced": "noch auf keiner Rechnung",
       "trackingLink": "Verfolgungslink für den Kunden",
-      "openTracking": "Verfolgungsseite öffnen"
+      "openTracking": "Verfolgungsseite öffnen",
+      "refunded": "erstattet"
     },
     "alerts": {
       "newUrgent": "Neuer dringender Auftrag {number}",
@@ -1059,6 +1060,17 @@
     "privacy": "Nur wer diesen Link hat, sieht diese Seite. Bitte nicht weitergeben.",
     "privacyLink": "Datenschutzerklärung",
     "expiredTitle": "Dieser Link ist abgelaufen",
-    "expiredText": "Aufträge werden hier 30 Tage nach Abschluss angezeigt. Rufen Sie uns an, wenn Sie etwas zu diesem Auftrag brauchen."
+    "expiredText": "Aufträge werden hier 30 Tage nach Abschluss angezeigt. Rufen Sie uns an, wenn Sie etwas zu diesem Auftrag brauchen.",
+    "payTitle": "Online bezahlen",
+    "payText": "Sicher mit Karte, Apple Pay oder Google Pay bezahlen. Den Beleg erhalten Sie per Nachricht.",
+    "pay": "{amount} bezahlen",
+    "payOpening": "Zahlung wird geöffnet…",
+    "payErrors": {
+      "nothing_due": "Derzeit ist nichts zu bezahlen.",
+      "unavailable": "Online-Zahlung ist gerade nicht verfügbar. Sie können beim Fahrer oder per Überweisung zahlen.",
+      "rate_limited": "Zu viele Versuche. Bitte einige Minuten warten."
+    },
+    "paidThanks": "Vielen Dank, wir haben Ihre Zahlung erhalten.",
+    "paidPending": "Vielen Dank. Wir bestätigen Ihre Zahlung; die Seite aktualisiert sich gleich."
   }
 }

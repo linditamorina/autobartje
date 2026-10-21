@@ -394,7 +394,8 @@
       "payments": "Payments received",
       "notInvoiced": "not on an invoice yet",
       "trackingLink": "Customer tracking link",
-      "openTracking": "Open tracking page"
+      "openTracking": "Open tracking page",
+      "refunded": "refunded"
     },
     "alerts": {
       "newUrgent": "New urgent order {number}",
@@ -1059,6 +1060,17 @@
     "privacy": "Only people with this link can see this page. Do not share it.",
     "privacyLink": "Privacy policy",
     "expiredTitle": "This tracking link has expired",
-    "expiredText": "Orders are shown here for 30 days after they are finished. Call us if you need anything about this order."
+    "expiredText": "Orders are shown here for 30 days after they are finished. Call us if you need anything about this order.",
+    "payTitle": "Pay online",
+    "payText": "Pay securely by card, Apple Pay or Google Pay. You get a receipt by message.",
+    "pay": "Pay {amount}",
+    "payOpening": "Opening payment…",
+    "payErrors": {
+      "nothing_due": "There is nothing to pay right now.",
+      "unavailable": "Online payment is not available right now. You can pay the driver or by bank transfer.",
+      "rate_limited": "Too many tries. Please wait a few minutes."
+    },
+    "paidThanks": "Thank you, we received your payment.",
+    "paidPending": "Thank you. We are confirming your payment; this page updates in a moment."
   }
 }

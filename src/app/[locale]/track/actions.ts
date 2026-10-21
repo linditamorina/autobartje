@@ -1,6 +1,8 @@
 "use server";
 
+import { redirect as redirectExternal } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
+import { createCheckout, PaymentError } from "@/server/payments/stripe";
 import { routing } from "@/i18n/routing";
 import { findTrackingToken } from "@/server/orders/tracking";
 import { rateLimit } from "@/server/security/rate-limit";
@@ -18,4 +20,20 @@ export async function lookupAction(_: LookupState, form: FormData): Promise<Look
   const raw = String(form.get("locale") ?? "");
   const locale = (routing.locales as readonly string[]).includes(raw) ? (raw as (typeof routing.locales)[number]) : routing.defaultLocale;
   redirect({ href: `/track/${token}`, locale });
+}
+
+export type PayState = { error: "nothing_due" | "unavailable" | "rate_limited" } | undefined;
+
+export async function payAction(_: PayState, form: FormData): Promise<PayState> {
+  const ip = (await clientIp()) ?? "unknown";
+  if (!rateLimit(`pay:${ip}`, 10, 10 * 60_000).ok) return { error: "rate_limited" };
+  let url: string;
+  try {
+    url = await createCheckout(String(form.get("token") ?? ""));
+  } catch (err) {
+    if (err instanceof PaymentError) return { error: err.code === "nothing_due" ? "nothing_due" : "unavailable" };
+    console.error("[checkout]", err);
+    return { error: "unavailable" };
+  }
+  redirectExternal(url);
 }

@@ -35,7 +35,7 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
       assignments: { where: { isActive: true }, include: { driver: { include: { user: true } }, truck: true } },
       invoices: { where: { status: { not: "VOID" } }, select: { id: true, number: true, kind: true, status: true }, orderBy: { createdAt: "asc" } },
       inspections: { include: { photos: { orderBy: { createdAt: "asc" } }, driver: { include: { user: { select: { name: true } } } } }, orderBy: { createdAt: "asc" } },
-      payments: { where: { status: "SUCCEEDED" }, orderBy: { createdAt: "asc" } },
+      payments: { where: { status: { in: ["SUCCEEDED", "REFUNDED"] } }, orderBy: { createdAt: "asc" } },
     },
   });
   if (!order) notFound();
@@ -209,9 +209,12 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
                   <li key={p.id} className="flex justify-between gap-2">
                     <span>
                       {ti.has(`methods.${p.method}`) ? ti(`methods.${p.method}` as never) : p.method}
-                      <span className="block text-xs text-muted-foreground">{(p.receivedById && actors.get(p.receivedById)) ?? "–"} · {fmtDateTime(p.receivedAt ?? p.createdAt, locale)}{!p.invoiceId && ` · ${t("notInvoiced")}`}</span>
+                      {p.stripePaymentIntentId && (
+                        <a href={`https://dashboard.stripe.com/payments/${p.stripePaymentIntentId}`} target="_blank" rel="noopener noreferrer" className="ml-1 text-sm underline">Stripe</a>
+                      )}
+                      <span className="block text-xs text-muted-foreground">{(p.receivedById && actors.get(p.receivedById)) ?? "–"} · {fmtDateTime(p.receivedAt ?? p.createdAt, locale)}{p.status === "REFUNDED" ? ` · ${t("refunded")}` : !p.invoiceId && ` · ${t("notInvoiced")}`}</span>
                     </span>
-                    <span className="font-semibold tabular-nums">{formatEur(p.amountCents, locale)}</span>
+                    <span className={p.status === "REFUNDED" ? "font-semibold tabular-nums line-through" : "font-semibold tabular-nums"}>{formatEur(p.amountCents, locale)}</span>
                   </li>
                 ))}
               </ul>

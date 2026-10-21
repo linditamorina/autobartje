@@ -394,7 +394,8 @@
       "payments": "Pagesat e marra",
       "notInvoiced": "ende pa faturë",
       "trackingLink": "Linku i ndjekjes për klientin",
-      "openTracking": "Hap faqen e ndjekjes"
+      "openTracking": "Hap faqen e ndjekjes",
+      "refunded": "rimbursuar"
     },
     "alerts": {
       "newUrgent": "Porosi e re urgjente {number}",
@@ -1059,6 +1060,17 @@
     "privacy": "Këtë faqe e shohin vetëm ata që kanë linkun. Mos e ndani me të tjerë.",
     "privacyLink": "Politika e privatësisë",
     "expiredTitle": "Ky link ndjekjeje ka skaduar",
-    "expiredText": "Porositë shfaqen këtu 30 ditë pasi përfundojnë. Na telefononi nëse keni nevojë për diçka rreth kësaj porosie."
+    "expiredText": "Porositë shfaqen këtu 30 ditë pasi përfundojnë. Na telefononi nëse keni nevojë për diçka rreth kësaj porosie.",
+    "payTitle": "Paguani online",
+    "payText": "Paguani në mënyrë të sigurt me kartelë, Apple Pay ose Google Pay. Dëshminë e pagesës e merrni me mesazh.",
+    "pay": "Paguaj {amount}",
+    "payOpening": "Duke hapur pagesën…",
+    "payErrors": {
+      "nothing_due": "Për momentin nuk ka asgjë për të paguar.",
+      "unavailable": "Pagesa online nuk është në dispozicion tani. Mund t'i paguani shoferit ose me transfer bankar.",
+      "rate_limited": "Shumë përpjekje. Prisni pak minuta."
+    },
+    "paidThanks": "Faleminderit, e morëm pagesën tuaj.",
+    "paidPending": "Faleminderit. Po e konfirmojmë pagesën; faqja përditësohet pas pak."
   }
 }

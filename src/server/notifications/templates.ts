@@ -34,7 +34,7 @@ const sq: Dict = {
   delivered: (p, c) => ({ subject: `Automjeti u dorëzua (${s(p.orderNumber)})`, text: `${c.brand}: Automjeti juaj u dorëzua. Faleminderit që na zgjodhët!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `Si ishte shërbimi ynë?`, text: `${c.brand}: Faleminderit! Na ndihmon shumë një vlerësim i shkurtër: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Fatura ${s(p.invoiceNumber)}`, text: `${c.brand}: Fatura ${s(p.invoiceNumber)} për ${f.eur(p.totalCents)} është gati.${p.url ? ` ${s(p.url)}` : ""}` }),
-  payment_received: (p, c, f) => ({ subject: `Pagesa u pranua`, text: `${c.brand}: E pranuam pagesën prej ${f.eur(p.amountCents)}. Faleminderit!` }),
+  payment_received: (p, c, f) => ({ subject: `Pagesa u pranua`, text: `${c.brand}: E pranuam pagesën prej ${f.eur(p.amountCents)}. Faleminderit!${p.receiptUrl ? ` Dëshmia e pagesës: ${s(p.receiptUrl)}` : ""}` }),
   admin_new_order: (p, _c, f) => ({ subject: `${p.urgent ? "URGJENT " : ""}Porosi e re ${s(p.orderNumber)}`, text: `${p.urgent ? "URGJENT! " : ""}Porosi e re ${s(p.orderNumber)}: ${s(p.pickup)}${p.dropoff ? ` → ${s(p.dropoff)}` : ""}. Klienti: ${s(p.customerName)} ${s(p.phone)}${p.estimatedCents != null ? `. Vlerësim ${f.eur(p.estimatedCents)}` : ""}` }),
   admin_fleet_expiry: (p) => ({ subject: `Dokumente të flotës që skadojnë`, text: `Skadojnë së shpejti:\n${s(p.lines)}` }),
 };
@@ -48,7 +48,7 @@ const en: Dict = {
   delivered: (p, c) => ({ subject: `Vehicle delivered (${s(p.orderNumber)})`, text: `${c.brand}: Your vehicle has been delivered. Thank you for choosing us!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `How did we do?`, text: `${c.brand}: Thank you! A short review helps us a lot: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Invoice ${s(p.invoiceNumber)}`, text: `${c.brand}: Invoice ${s(p.invoiceNumber)} for ${f.eur(p.totalCents)} is ready.${p.url ? ` ${s(p.url)}` : ""}` }),
-  payment_received: (p, c, f) => ({ subject: `Payment received`, text: `${c.brand}: We received your payment of ${f.eur(p.amountCents)}. Thank you!` }),
+  payment_received: (p, c, f) => ({ subject: `Payment received`, text: `${c.brand}: We received your payment of ${f.eur(p.amountCents)}. Thank you!${p.receiptUrl ? ` Receipt: ${s(p.receiptUrl)}` : ""}` }),
   admin_new_order: (p, _c, f) => ({ subject: `${p.urgent ? "URGENT " : ""}New order ${s(p.orderNumber)}`, text: `${p.urgent ? "URGENT! " : ""}New order ${s(p.orderNumber)}: ${s(p.pickup)}${p.dropoff ? ` → ${s(p.dropoff)}` : ""}. Customer: ${s(p.customerName)} ${s(p.phone)}${p.estimatedCents != null ? `. Estimate ${f.eur(p.estimatedCents)}` : ""}` }),
   admin_fleet_expiry: (p) => ({ subject: `Fleet documents expiring`, text: `Expiring soon:\n${s(p.lines)}` }),
 };
@@ -62,7 +62,7 @@ const de: Dict = {
   delivered: (p, c) => ({ subject: `Fahrzeug zugestellt (${s(p.orderNumber)})`, text: `${c.brand}: Ihr Fahrzeug wurde zugestellt. Vielen Dank!` }),
   review_request: (_p, c) => c.reviewUrl ? { subject: `Wie waren wir?`, text: `${c.brand}: Vielen Dank! Eine kurze Bewertung hilft uns sehr: ${c.reviewUrl}` } : null,
   invoice_issued: (p, c, f) => ({ subject: `Rechnung ${s(p.invoiceNumber)}`, text: `${c.brand}: Rechnung ${s(p.invoiceNumber)} über ${f.eur(p.totalCents)} ist bereit.${p.url ? ` ${s(p.url)}` : ""}` }),
-  payment_received: (p, c, f) => ({ subject: `Zahlung erhalten`, text: `${c.brand}: Wir haben Ihre Zahlung über ${f.eur(p.amountCents)} erhalten. Vielen Dank!` }),
+  payment_received: (p, c, f) => ({ subject: `Zahlung erhalten`, text: `${c.brand}: Wir haben Ihre Zahlung über ${f.eur(p.amountCents)} erhalten. Vielen Dank!${p.receiptUrl ? ` Beleg: ${s(p.receiptUrl)}` : ""}` }),
   admin_new_order: (p, _c, f) => ({ subject: `${p.urgent ? "DRINGEND " : ""}Neuer Auftrag ${s(p.orderNumber)}`, text: `${p.urgent ? "DRINGEND! " : ""}Neuer Auftrag ${s(p.orderNumber)}: ${s(p.pickup)}${p.dropoff ? ` → ${s(p.dropoff)}` : ""}. Kunde: ${s(p.customerName)} ${s(p.phone)}${p.estimatedCents != null ? `. Schätzung ${f.eur(p.estimatedCents)}` : ""}` }),
   admin_fleet_expiry: (p) => ({ subject: `Ablaufende Fahrzeugdokumente`, text: `Laufen bald ab:\n${s(p.lines)}` }),
 };

@@ -9,6 +9,7 @@ import { formatPhone } from "@/lib/contact";
 import type { Prisma } from "@/generated/prisma/client";
 import { calculateInvoice, formatDocumentNumber, paymentStatus, type LineInput } from "./calc";
 import type { InvoiceDoc } from "./pdf";
+import { trackUrl } from "@/lib/tracking";
 
 export class InvoiceError extends Error {
   constructor(public code: "not_found" | "not_draft" | "no_lines" | "no_price" | "exists" | "not_issued" | "overpaid" | "no_buyer") {
@@ -112,7 +113,7 @@ async function sellerSnapshot() {
 export async function issueInvoice(id: string, actorId: string) {
   const seller = await sellerSnapshot();
   const issued = await db.$transaction(async (tx) => {
-    const inv = await tx.invoice.findUnique({ where: { id }, include: { lines: true, company: true, order: { select: { locale: true } } } });
+    const inv = await tx.invoice.findUnique({ where: { id }, include: { lines: true, company: true, order: { select: { locale: true, trackingToken: true } } } });
     if (!inv) throw new InvoiceError("not_found");
     if (inv.status !== "DRAFT") throw new InvoiceError("not_draft");
     if (!inv.lines.length) throw new InvoiceError("no_lines");
@@ -148,7 +149,7 @@ export async function issueInvoice(id: string, actorId: string) {
         channel: "EMAIL",
         to: buyer.email,
         orderId: inv.orderId ?? undefined,
-        payload: { invoiceId: id, invoiceNumber: number, totalCents: inv.totalCents, locale: inv.order?.locale ?? "sq" },
+        payload: { invoiceId: id, invoiceNumber: number, totalCents: inv.totalCents, locale: inv.order?.locale ?? "sq", url: inv.order && inv.kind === "INVOICE" ? trackUrl(inv.order.trackingToken, inv.order.locale) : undefined },
       });
     }
     return updated;
