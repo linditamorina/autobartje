@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { resetLogoAction, saveSettingsAction, uploadLogoAction, type SettingsState } from "@/app/admin/(panel)/settings/actions";
 import type { Settings } from "@/server/settings/defaults";
 import { Panel } from "./ui";
+import { useKeepInputSubmit } from "./use-submit";
 
 function Feedback({ state }: { state: SettingsState }) {
   const t = useTranslations("Admin.settings");
@@ -53,6 +54,7 @@ type Field = { key: keyof Settings; label: string; type?: "text" | "number" | "c
 export function SettingsForm({ values }: { values: Settings }) {
   const t = useTranslations("Admin.settings");
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettingsAction, undefined);
+  const onSubmit = useKeepInputSubmit(action);
   const invalid = new Set(state?.fields ?? []);
 
   const groups: { title: string; fields: Field[] }[] = [
@@ -91,7 +93,7 @@ export function SettingsForm({ values }: { values: Settings }) {
   ];
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         {groups.map((g) => (
           <Panel key={g.title} title={g.title}>
