@@ -326,7 +326,8 @@
       "PHONE": "Phone",
       "WHATSAPP": "WhatsApp",
       "B2B_PORTAL": "B2B portal",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "API": "Partner API"
     },
     "orders": {
       "title": "Orders",
@@ -1001,6 +1002,51 @@
       "busiest": "Busiest: {day} at {hour}:00 ({n, plural, one {# order} other {# orders}}). Darker means more orders.",
       "cell": "{day} {hour}:00 – {n, plural, one {# order} other {# orders}}",
       "footnote": "Orders count by the day they came in. Value is the final price, or the estimate where none was set. Arrival time runs from the call or booking to the truck reaching the customer."
+    },
+    "api": {
+      "title": "API access",
+      "lead": "Lets the company's own system price, book and follow orders. Only Owner and Admin see this.",
+      "docs": "Developer documentation",
+      "keys": "API keys",
+      "keyName": "Name of the key",
+      "keyNamePlaceholder": "e.g. Claims system",
+      "createKey": "Create key",
+      "keyOnce": "The new key. Copy it now and give it to the company: it is not shown again.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "lastUsed": "Last used {date}",
+      "neverUsed": "Not used yet",
+      "revokedAt": "Revoked {date}",
+      "revoke": "Revoke",
+      "revokeConfirm": "Revoke this key? Systems using it stop working at once.",
+      "webhooks": "Webhooks",
+      "webhookUrl": "URL that receives order events",
+      "events": "Events",
+      "addWebhook": "Add webhook",
+      "secretOnce": "Signing secret for this webhook. Copy it now and give it to the company: it is not shown again.",
+      "lastSuccess": "Last delivered {date}",
+      "noDeliveries": "Nothing sent yet",
+      "failing": "{n, plural, one {# failed delivery} other {# failed deliveries}} in a row: {error}",
+      "disabled": "Switched off after too many failures: {error}",
+      "test": "Send test",
+      "testConfirm": "Send a test event to this URL?",
+      "enable": "Switch on",
+      "enableConfirm": "Switch this webhook on again and retry?",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this webhook?",
+      "delivery": {
+        "PENDING": "waiting",
+        "SENT": "delivered",
+        "FAILED": "failed"
+      },
+      "errors": {
+        "invalid": "Check the entry.",
+        "https": "The URL must start with https:// and use the standard port.",
+        "private": "The URL must be on the public internet.",
+        "no_events": "Choose at least one event.",
+        "too_many": "A company can have at most 5 webhooks.",
+        "not_found": "Not found."
+      }
     }
   },
   "Pages": {

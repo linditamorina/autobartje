@@ -61,6 +61,7 @@ enum OrderChannel {
   WHATSAPP
   B2B_PORTAL
   ADMIN
+  API
 }
 
 enum ContactChannel {
@@ -338,8 +339,81 @@ model Company {
   contractPrices ContractPrice[]
   orders         Order[]
   invoices       Invoice[]
+  apiKeys        ApiKey[]
+  webhooks       Webhook[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+}
+
+/// Partner API key. Only a SHA-256 of the key is stored; the key is shown once.
+model ApiKey {
+  id          String    @id @default(cuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  prefix      String    @unique // public part, shown in the admin list
+  secretHash  String
+  createdById String?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([companyId])
+}
+
+/// Where a partner wants order events sent. The signing secret is encrypted at rest.
+model Webhook {
+  id            String            @id @default(cuid())
+  companyId     String
+  company       Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  url           String
+  secretEnc     String
+  events        String[]
+  isActive      Boolean           @default(true)
+  failCount     Int               @default(0) // consecutive failed deliveries
+  lastSuccessAt DateTime?
+  lastFailureAt DateTime?
+  lastError     String?
+  deliveries    WebhookDelivery[]
+  createdAt     DateTime          @default(now())
+
+  @@index([companyId])
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model WebhookDelivery {
+  id             String                @id @default(cuid())
+  webhookId      String
+  webhook        Webhook               @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event          String
+  payload        Json
+  status         WebhookDeliveryStatus @default(PENDING)
+  attempts       Int                   @default(0)
+  nextAttemptAt  DateTime              @default(now())
+  responseStatus Int?
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime              @default(now())
+
+  @@index([status, nextAttemptAt])
+  @@index([webhookId, createdAt])
+}
+
+/// Idempotency-Key of API order requests, so a retried request does not book twice.
+model ApiIdempotency {
+  id        String   @id @default(cuid())
+  companyId String
+  key       String
+  orderId   String
+  createdAt DateTime @default(now())
+
+  @@unique([companyId, key])
+  @@index([createdAt])
 }
 
 model Vehicle {

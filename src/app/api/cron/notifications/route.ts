@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorized } from "@/server/security/cron";
 import { processOutbox } from "@/server/notifications/send";
+import { processWebhooks } from "@/server/partner/webhooks";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,5 +17,6 @@ export async function GET(req: Request) {
     total.skipped += r.skipped;
     if (r.sent + r.failed + r.skipped < 25) break;
   }
-  return NextResponse.json(total);
+  const webhooks = await processWebhooks(50);
+  return NextResponse.json({ ...total, webhooks });
 }

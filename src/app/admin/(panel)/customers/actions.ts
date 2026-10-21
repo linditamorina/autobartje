@@ -9,6 +9,9 @@ import { createMonthlyInvoice } from "@/server/invoicing/monthly";
 import { InvoiceError } from "@/server/invoicing/manage";
 import { phoneSchema, SERVICES, VEHICLE_TYPES } from "@/lib/validation/booking";
 import { formReader } from "@/lib/form";
+import { createApiKey, revokeApiKey } from "@/server/partner/keys";
+import { createWebhook, deleteWebhook, enableWebhook, sendTestEvent, WebhookError } from "@/server/partner/webhooks";
+import { kickOutbox } from "@/server/notifications/kick";
 import { eurToCents } from "@/lib/money";
 import { fromBusinessLocal } from "@/lib/time";
 
@@ -137,4 +140,60 @@ export async function monthlyInvoiceAction(_: CustomerState, form: FormData): Pr
     throw err;
   }
   redirect(`/admin/invoices/${invoiceId}`);
+}
+
+// Partner API: keys and webhooks give a company's systems access, so only Owner and Admin manage them.
+
+export type SecretState = { ok?: boolean; error?: string; secret?: string } | undefined;
+
+export async function createApiKeyAction(_: SecretState, form: FormData): Promise<SecretState> {
+  const actor = await assertStaff("settings.manage");
+  const f = formReader(form);
+  const name = f.str("name").trim();
+  if (name.length < 2 || name.length > 60) return { error: "invalid" };
+  const { key } = await createApiKey(f.str("companyId"), name, actor.id);
+  revalidatePath(`/admin/customers/${f.str("companyId")}`);
+  return { ok: true, secret: key };
+}
+
+export async function revokeApiKeyAction(_: CustomerState, form: FormData): Promise<CustomerState> {
+  const actor = await assertStaff("settings.manage");
+  const f = formReader(form);
+  await revokeApiKey(f.str("companyId"), f.str("id"), actor.id);
+  revalidatePath(`/admin/customers/${f.str("companyId")}`);
+  return { ok: true };
+}
+
+export async function addWebhookAction(_: SecretState, form: FormData): Promise<SecretState> {
+  const actor = await assertStaff("settings.manage");
+  const f = formReader(form);
+  try {
+    const { secret } = await createWebhook(f.str("companyId"), { url: f.str("url").trim(), events: form.getAll("events").map(String) }, actor.id);
+    revalidatePath(`/admin/customers/${f.str("companyId")}`);
+    return { ok: true, secret };
+  } catch (err) {
+    if (err instanceof WebhookError) return { error: err.code };
+    throw err;
+  }
+}
+
+export async function webhookAction(_: CustomerState, form: FormData): Promise<CustomerState> {
+  const actor = await assertStaff("settings.manage");
+  const f = formReader(form);
+  const companyId = f.str("companyId");
+  const id = f.str("id");
+  try {
+    const op = f.str("op");
+    if (op === "delete") await deleteWebhook(companyId, id, actor.id);
+    else if (op === "enable") await enableWebhook(companyId, id);
+    else if (op === "test") {
+      await sendTestEvent(companyId, id);
+      kickOutbox();
+    } else return { error: "invalid" };
+  } catch (err) {
+    if (err instanceof WebhookError) return { error: err.code };
+    throw err;
+  }
+  revalidatePath(`/admin/customers/${companyId}`);
+  return { ok: true };
 }

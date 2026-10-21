@@ -36,6 +36,8 @@ jobs:
       # WhatsApp webhook test values (sending stays on SMS without WHATSAPP_PROVIDER=meta)
       WHATSAPP_APP_SECRET: ci-only-whatsapp-app-secret
       WHATSAPP_VERIFY_TOKEN: ci-only-verify-token
+      # Lets the partner API test send webhooks to a local receiver; never set in production
+      WEBHOOK_ALLOW_PRIVATE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

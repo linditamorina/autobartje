@@ -326,7 +326,8 @@
       "PHONE": "Telefon",
       "WHATSAPP": "WhatsApp",
       "B2B_PORTAL": "B2B-Portal",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "API": "Partner-API"
     },
     "orders": {
       "title": "Aufträge",
@@ -1001,6 +1002,51 @@
       "busiest": "Am meisten: {day} um {hour}:00 ({n, plural, one {# Auftrag} other {# Aufträge}}). Dunkler heißt mehr Aufträge.",
       "cell": "{day} {hour}:00 – {n, plural, one {# Auftrag} other {# Aufträge}}",
       "footnote": "Aufträge zählen nach dem Eingangstag. Der Wert ist der Endpreis, sonst die Schätzung. Die Ankunftszeit läuft vom Anruf oder der Buchung bis der Wagen beim Kunden ist."
+    },
+    "api": {
+      "title": "API-Zugang",
+      "lead": "Erlaubt dem System des Unternehmens, Preise abzufragen, Aufträge zu buchen und zu verfolgen. Nur Inhaber und Admin sehen das.",
+      "docs": "Entwicklerdokumentation",
+      "keys": "API-Schlüssel",
+      "keyName": "Name des Schlüssels",
+      "keyNamePlaceholder": "z. B. Schadensystem",
+      "createKey": "Schlüssel erstellen",
+      "keyOnce": "Der neue Schlüssel. Jetzt kopieren und dem Unternehmen geben: Er wird nicht wieder angezeigt.",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "lastUsed": "Zuletzt benutzt {date}",
+      "neverUsed": "Noch nicht benutzt",
+      "revokedAt": "Widerrufen am {date}",
+      "revoke": "Widerrufen",
+      "revokeConfirm": "Diesen Schlüssel widerrufen? Systeme, die ihn nutzen, funktionieren sofort nicht mehr.",
+      "webhooks": "Webhooks",
+      "webhookUrl": "URL, die Auftragsereignisse empfängt",
+      "events": "Ereignisse",
+      "addWebhook": "Webhook hinzufügen",
+      "secretOnce": "Signaturgeheimnis für diesen Webhook. Jetzt kopieren und dem Unternehmen geben: Es wird nicht wieder angezeigt.",
+      "lastSuccess": "Zuletzt zugestellt {date}",
+      "noDeliveries": "Noch nichts gesendet",
+      "failing": "{n, plural, one {# fehlgeschlagene Zustellung} other {# fehlgeschlagene Zustellungen}} in Folge: {error}",
+      "disabled": "Nach zu vielen Fehlern abgeschaltet: {error}",
+      "test": "Test senden",
+      "testConfirm": "Ein Testereignis an diese URL senden?",
+      "enable": "Einschalten",
+      "enableConfirm": "Diesen Webhook wieder einschalten und erneut versuchen?",
+      "delete": "Löschen",
+      "deleteConfirm": "Diesen Webhook löschen?",
+      "delivery": {
+        "PENDING": "wartet",
+        "SENT": "zugestellt",
+        "FAILED": "fehlgeschlagen"
+      },
+      "errors": {
+        "invalid": "Bitte Eingabe prüfen.",
+        "https": "Die URL muss mit https:// beginnen und den Standardport nutzen.",
+        "private": "Die URL muss im öffentlichen Internet liegen.",
+        "no_events": "Mindestens ein Ereignis wählen.",
+        "too_many": "Ein Unternehmen kann höchstens 5 Webhooks haben.",
+        "not_found": "Nicht gefunden."
+      }
     }
   },
   "Pages": {

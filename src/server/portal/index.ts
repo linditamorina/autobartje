@@ -5,6 +5,7 @@ import { enqueueNotification } from "@/server/notifications/enqueue";
 import { nextOrderNumber } from "@/server/orders/numbering";
 import { priceQuote } from "@/server/pricing/quote";
 import { trackUrl } from "@/lib/tracking";
+import { enqueueWebhookEvent } from "@/server/partner/webhooks";
 import type { QuoteInput } from "@/lib/validation/booking";
 
 export class PortalError extends Error {
@@ -78,19 +79,35 @@ export interface PortalRequest {
   notes: string | null;
 }
 
+export type CompanyRequester =
+  | { kind: "portal"; userId: string; name: string; email: string; locale: string }
+  | { kind: "api"; apiKeyId: string; name: string; email: string | null; locale: string };
+
 /** A transport request from the portal: priced with the company's contract, then confirmed by the office as usual. */
 export async function createPortalOrder(userId: string, input: PortalRequest) {
   const { profile: user, company } = await portalCompany(userId);
+  return createCompanyOrder(company, { kind: "portal", userId, name: user.name, email: user.email, locale: user.locale }, input);
+}
+
+/**
+ * A business customer's order, from the portal or the partner API. Status
+ * messages go by email to the requester (the portal user, or the company's
+ * billing email for the API), and the office confirms it as usual.
+ */
+export async function createCompanyOrder(company: { id: string; name: string }, by: CompanyRequester, input: PortalRequest) {
   const q = input.quote;
   const price = await priceQuote(q, { save: false, companyId: company.id });
-  const locale = user.locale === "sr" ? "sq" : user.locale;
+  const locale = (["sq", "en", "de"] as const).find((l) => l === by.locale) ?? "sq";
+  const channel = by.kind === "api" ? "API" : "B2B_PORTAL";
+  const actorId = by.kind === "portal" ? by.userId : null;
 
   const order = await db.$transaction(async (tx) => {
     // The person on site is the order's contact; status messages go to the requester's email.
+    const preferredChannel = by.email ? "EMAIL" : "SMS";
     const existing = await tx.customer.findFirst({ where: { companyId: company.id, phone: input.contactPhone, anonymizedAt: null } });
     const customer = existing
-      ? await tx.customer.update({ where: { id: existing.id }, data: { fullName: input.contactName, email: user.email, preferredChannel: "EMAIL", locale } })
-      : await tx.customer.create({ data: { fullName: input.contactName, phone: input.contactPhone, email: user.email, preferredChannel: "EMAIL", locale, companyId: company.id } });
+      ? await tx.customer.update({ where: { id: existing.id }, data: { fullName: input.contactName, email: by.email ?? existing.email, preferredChannel, locale } })
+      : await tx.customer.create({ data: { fullName: input.contactName, phone: input.contactPhone, email: by.email, preferredChannel, locale, companyId: company.id } });
     const vehicle = await tx.vehicle.create({
       data: { customerId: customer.id, type: q.vehicleType, make: input.vehicle.make, model: input.vehicle.model, plate: input.vehicle.plate?.toUpperCase() || null, vin: input.vehicle.vin, isDrivable: q.isDrivable },
     });
@@ -101,7 +118,7 @@ export async function createPortalOrder(userId: string, input: PortalRequest) {
         status: "RECEIVED",
         priority: q.isAsap && q.service === "EMERGENCY_TOWING" ? "URGENT" : "NORMAL",
         service: q.service,
-        channel: "B2B_PORTAL",
+        channel,
         locale,
         customerRef: input.customerRef,
         customerId: customer.id,
@@ -119,21 +136,24 @@ export async function createPortalOrder(userId: string, input: PortalRequest) {
         durationMin: price.durationMin,
         isAsap: q.isAsap,
         requestedAt: q.isAsap ? null : (q.pickupAt ?? null),
+        windowStart: q.windowStart ?? null,
+        windowEnd: q.windowEnd ?? null,
         options: { ...q.options, isDrivable: q.isDrivable, notes: input.notes },
         estimatedCents: price.available ? price.totalCents : null,
-        statusEvents: { create: { to: "RECEIVED", actorId: userId, note: "Requested in the business portal" } },
-        notes: input.notes ? { create: { body: input.notes, authorId: userId } } : undefined,
+        statusEvents: { create: { to: "RECEIVED", actorId, note: by.kind === "api" ? "Sent through the partner API" : "Requested in the business portal" } },
+        notes: input.notes && actorId ? { create: { body: input.notes, authorId: actorId } } : undefined,
       },
     });
     const payload = {
-      orderNumber: number, customerName: `${company.name} (${user.name})`, service: q.service, pickup: q.pickup.address, dropoff: q.dropoff?.address ?? null,
+      orderNumber: number, customerName: `${company.name} (${by.name})`, service: q.service, pickup: q.pickup.address, dropoff: q.dropoff?.address ?? null,
       estimatedCents: created.estimatedCents, locale, trackUrl: trackUrl(created.trackingToken, locale),
     };
-    await enqueueNotification(tx, { event: "booking_received", channel: "EMAIL", to: user.email, payload, orderId: created.id });
+    if (by.email) await enqueueNotification(tx, { event: "booking_received", channel: "EMAIL", to: by.email, payload, orderId: created.id });
     if (process.env.DISPATCH_ALERT_PHONE) {
       await enqueueNotification(tx, { event: "admin_new_order", channel: "SMS", to: process.env.DISPATCH_ALERT_PHONE, payload: { ...payload, urgent: created.priority === "URGENT", phone: input.contactPhone }, orderId: created.id });
     }
-    await audit(tx, { actorId: userId, action: "order.created", entityType: "Order", entityId: created.id, after: { number, channel: "B2B_PORTAL", companyId: company.id } });
+    await enqueueWebhookEvent(tx, company.id, "order.created", { number, status: created.status, reference: created.customerRef });
+    await audit(tx, { actorId, action: "order.created", entityType: "Order", entityId: created.id, after: { number, channel, companyId: company.id, ...(by.kind === "api" ? { apiKeyId: by.apiKeyId } : {}) } });
     return created;
   });
   return { order, priceAvailable: price.available };

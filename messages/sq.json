@@ -326,7 +326,8 @@
       "PHONE": "Telefon",
       "WHATSAPP": "WhatsApp",
       "B2B_PORTAL": "Portali B2B",
-      "ADMIN": "Admin"
+      "ADMIN": "Admin",
+      "API": "API i partnerëve"
     },
     "orders": {
       "title": "Porositë",
@@ -1001,6 +1002,51 @@
       "busiest": "Më e ngarkuara: {day} në {hour}:00 ({n, plural, one {# porosi} other {# porosi}}). Më e errët do të thotë më shumë porosi.",
       "cell": "{day} {hour}:00 – {n, plural, one {# porosi} other {# porosi}}",
       "footnote": "Porositë numërohen sipas ditës kur erdhën. Vlera është çmimi final, ose vlerësimi kur nuk ka çmim final. Koha e arritjes llogaritet nga thirrja ose rezervimi deri kur kamioni arrin te klienti."
+    },
+    "api": {
+      "title": "Qasja API",
+      "lead": "Lejon sistemin e kompanisë të llogarisë çmime, të rezervojë dhe të ndjekë porosi. Këtë e shohin vetëm Pronari dhe Administratori.",
+      "docs": "Dokumentacioni për programuesit",
+      "keys": "Çelësat API",
+      "keyName": "Emri i çelësit",
+      "keyNamePlaceholder": "p.sh. Sistemi i dëmeve",
+      "createKey": "Krijo çelës",
+      "keyOnce": "Çelësi i ri. Kopjojeni tani dhe jepjani kompanisë: nuk shfaqet më.",
+      "copy": "Kopjo",
+      "copied": "U kopjua",
+      "lastUsed": "Përdorur së fundi {date}",
+      "neverUsed": "Ende i papërdorur",
+      "revokedAt": "Revokuar më {date}",
+      "revoke": "Revoko",
+      "revokeConfirm": "Ta revokoj këtë çelës? Sistemet që e përdorin ndalen menjëherë.",
+      "webhooks": "Webhooks",
+      "webhookUrl": "URL që merr ngjarjet e porosive",
+      "events": "Ngjarjet",
+      "addWebhook": "Shto webhook",
+      "secretOnce": "Sekreti i nënshkrimit për këtë webhook. Kopjojeni tani dhe jepjani kompanisë: nuk shfaqet më.",
+      "lastSuccess": "Dërguar së fundi {date}",
+      "noDeliveries": "Ende asgjë e dërguar",
+      "failing": "{n, plural, one {# dërgesë e dështuar} other {# dërgesa të dështuara}} radhazi: {error}",
+      "disabled": "U fik pas shumë dështimeve: {error}",
+      "test": "Dërgo test",
+      "testConfirm": "Të dërgohet një ngjarje testuese në këtë URL?",
+      "enable": "Ndize",
+      "enableConfirm": "Ta ndez përsëri këtë webhook dhe të provoj sërish?",
+      "delete": "Fshij",
+      "deleteConfirm": "Ta fshij këtë webhook?",
+      "delivery": {
+        "PENDING": "në pritje",
+        "SENT": "dërguar",
+        "FAILED": "dështoi"
+      },
+      "errors": {
+        "invalid": "Kontrolloni të dhënat.",
+        "https": "URL duhet të fillojë me https:// dhe të përdorë portin standard.",
+        "private": "URL duhet të jetë në internetin publik.",
+        "no_events": "Zgjidhni të paktën një ngjarje.",
+        "too_many": "Një kompani mund të ketë më së shumti 5 webhooks.",
+        "not_found": "Nuk u gjet."
+      }
     }
   },
   "Pages": {

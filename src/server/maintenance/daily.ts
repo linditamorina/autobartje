@@ -53,6 +53,8 @@ export async function applyRetention() {
   const closed = { status: { in: ["COMPLETED", "CANCELLED"] as ("COMPLETED" | "CANCELLED")[] } };
 
   const quotes = await db.quote.deleteMany({ where: { orderId: null, createdAt: { lt: before(s["retention.draftsDays"]) } } });
+  await db.webhookDelivery.deleteMany({ where: { status: { not: "PENDING" }, createdAt: { lt: before(30) } } });
+  await db.apiIdempotency.deleteMany({ where: { createdAt: { lt: before(7) } } });
   const gps = await db.driverPosition.deleteMany({ where: { createdAt: { lt: before(s["retention.gpsDays"]) } } });
   const outbox = await db.notificationOutbox.deleteMany({ where: { status: { in: ["SENT", "SKIPPED", "FAILED"] }, createdAt: { lt: before(OUTBOX_KEEP_DAYS) } } });
 

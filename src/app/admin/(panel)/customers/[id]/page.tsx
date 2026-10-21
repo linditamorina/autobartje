@@ -6,14 +6,17 @@ import { requireStaff } from "@/server/auth/guard";
 import { can } from "@/server/auth/permissions";
 import { COMPANY_TYPES } from "@/server/companies/manage";
 import { uninvoicedOrders } from "@/server/invoicing/monthly";
-import { PageHeader, Panel, StatusBadge, fmtDate } from "@/components/admin/ui";
+import { PageHeader, Panel, StatusBadge, fmtDate, fmtDateTime } from "@/components/admin/ui";
 import { FieldsForm, type FieldDef } from "@/components/admin/fields-form";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { MonthlyInvoiceForm } from "@/components/admin/monthly-invoice-form";
 import { SERVICES, VEHICLE_TYPES } from "@/lib/validation/booking";
 import { formatEur } from "@/lib/money";
 import { businessDate } from "@/lib/time";
-import { addContractAction, addPortalUserAction, deleteContractAction, saveCompanyAction, togglePortalUserAction } from "../actions";
+import { addContractAction, addPortalUserAction, deleteContractAction, revokeApiKeyAction, saveCompanyAction, togglePortalUserAction, webhookAction } from "../actions";
+import { NewApiKeyForm, NewWebhookForm } from "@/components/admin/api-access";
+import { companyApiKeys } from "@/server/partner/keys";
+import { companyWebhooks, WEBHOOK_EVENTS } from "@/server/partner/webhooks";
 
 export const metadata = { title: "Customer" };
 
@@ -53,6 +56,10 @@ export default async function CompanyPage({ params }: PageProps<"/admin/customer
     { name: "monthlyInvoicing", label: t("monthly"), type: "checkbox", defaultValue: company?.monthlyInvoicing ?? false },
     { name: "isActive", label: t("active"), type: "checkbox", defaultValue: company?.isActive ?? true },
   ];
+
+  const ta = await getTranslations("Admin.api");
+  const manageApi = !!company && can(user.permissions, "settings.manage");
+  const [apiKeys, hooks] = manageApi ? await Promise.all([companyApiKeys(company.id), companyWebhooks(company.id)]) : [[], []];
 
   const months = recentMonths();
   const pending = company && can(user.permissions, "invoices.issue")
@@ -149,6 +156,63 @@ export default async function CompanyPage({ params }: PageProps<"/admin/customer
               <Panel title={t("monthlySection")}>
                 <p className="mb-3 text-sm text-muted-foreground">{t("monthlyLead")}</p>
                 <MonthlyInvoiceForm companyId={company.id} months={pending} />
+              </Panel>
+            )}
+
+            {manageApi && (
+              <Panel title={ta("title")}>
+                <div className="space-y-4" data-testid="api-access">
+                  <p className="text-sm text-muted-foreground">
+                    {ta("lead")} <a href="/developers" target="_blank" rel="noopener" className="font-semibold underline">{ta("docs")}</a>
+                  </p>
+                  <section className="space-y-2">
+                    <h3 className="font-bold">{ta("keys")}</h3>
+                    {apiKeys.length > 0 && (
+                      <ul className="divide-y divide-border">
+                        {apiKeys.map((k) => (
+                          <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                            <span>
+                              <span className="font-semibold">{k.name}</span> · <code className="text-xs">abk_{k.prefix}_…</code>
+                              <span className="block text-xs text-muted-foreground">
+                                {k.revokedAt ? ta("revokedAt", { date: fmtDate(k.revokedAt, locale) }) : k.lastUsedAt ? ta("lastUsed", { date: fmtDateTime(k.lastUsedAt, locale) }) : ta("neverUsed")}
+                              </span>
+                            </span>
+                            {!k.revokedAt && <ConfirmButton action={revokeApiKeyAction} hidden={{ id: k.id, companyId: company.id }} label={ta("revoke")} confirm={ta("revokeConfirm")} />}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <NewApiKeyForm companyId={company.id} />
+                  </section>
+                  <section className="space-y-2">
+                    <h3 className="font-bold">{ta("webhooks")}</h3>
+                    {hooks.length > 0 && (
+                      <ul className="divide-y divide-border">
+                        {hooks.map((h) => (
+                          <li key={h.id} className="space-y-1 py-2">
+                            <p className="break-all font-semibold">{h.url}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {h.events.join(", ")} · {h.isActive ? (h.failCount ? ta("failing", { n: h.failCount, error: h.lastError ?? "" }) : h.lastSuccessAt ? ta("lastSuccess", { date: fmtDateTime(h.lastSuccessAt, locale) }) : ta("noDeliveries")) : ta("disabled", { error: h.lastError ?? "" })}
+                            </p>
+                            {h.deliveries.length > 0 && (
+                              <ul className="text-xs" data-testid="deliveries">
+                                {h.deliveries.map((d) => (
+                                  <li key={d.id}>{fmtDateTime(d.createdAt, locale)} · <code>{d.event}</code> · {ta(`delivery.${d.status}`)}{d.responseStatus ? ` (HTTP ${d.responseStatus})` : ""}</li>
+                                ))}
+                              </ul>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                              <ConfirmButton action={webhookAction} hidden={{ op: "test", id: h.id, companyId: company.id }} label={ta("test")} confirm={ta("testConfirm")} />
+                              {!h.isActive && <ConfirmButton action={webhookAction} hidden={{ op: "enable", id: h.id, companyId: company.id }} label={ta("enable")} confirm={ta("enableConfirm")} />}
+                              <ConfirmButton action={webhookAction} hidden={{ op: "delete", id: h.id, companyId: company.id }} label={ta("delete")} confirm={ta("deleteConfirm")} />
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <NewWebhookForm companyId={company.id} events={WEBHOOK_EVENTS} />
+                  </section>
+                </div>
               </Panel>
             )}
 

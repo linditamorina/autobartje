@@ -117,6 +117,13 @@ by service, channel and lead source, finished jobs per driver, and when orders c
 downloads the period's orders for Excel (without customer contact details). The maths is in `src/server/reports/compute.ts`
 with unit tests.
 
+## Partner API
+
+- Insurers, dealers and leasing companies can price, book and follow jobs from their own systems. Developer documentation for partners is at `/developers`, the OpenAPI 3.1 description at `/api/v1/openapi.json`.
+- Endpoints (`/api/v1`): `POST /quotes` (price with the company's contract, nothing booked), `POST /orders` (book; an `Idempotency-Key` header makes retries safe), `GET /orders` (filter by status, `updated_since`, `reference`; paged), `GET /orders/{number}`. Orders arrive with channel "Partner API" and are confirmed by the office as usual. Partners never see other companies' orders, internal notes or staff details.
+- Admin → Customers → a company → **API access** (Owner and Admin only): create a key (shown once; only its SHA-256 is stored), revoke it, and add up to 5 webhooks for `order.created` and `order.status_changed`. Each webhook gets a signing secret (shown once, stored encrypted); requests carry `X-Autobartje-Signature: t=…,v1=…` (HMAC-SHA256 of `t.body`). Failed deliveries are retried after 1, 5, 15, 60, 360 and 1440 minutes; after 50 failures in a row the webhook switches off and the company page says why. The page lists the last deliveries and can send a test event.
+- Webhook URLs must be public https; the address is checked again on every send so a host name cannot be pointed at our own network. Keys are limited to 120 requests a minute.
+
 ## Online payments (Stripe)
 
 - Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to turn them on. In the Stripe dashboard add a webhook to `https://<your domain>/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `charge.refunded`. Turn on the payment methods you want (cards, Apple Pay, Google Pay) under Settings → Payment methods.
@@ -157,4 +164,4 @@ pending migrations on start.
 
 1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
 2. **Done**: driver PWA with inspections, order tracking page, online payments (Stripe), B2B portal, WhatsApp Business API.
-3. **In progress**: live GPS (done), reports (done), partner API.
+3. **Done**: live GPS, reports, partner API.

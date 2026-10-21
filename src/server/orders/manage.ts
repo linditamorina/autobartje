@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { audit } from "@/server/audit";
 import { enqueueNotification } from "@/server/notifications/enqueue";
 import { trackUrl } from "@/lib/tracking";
+import { enqueueWebhookEvent } from "@/server/partner/webhooks";
 import { canTransition, STATUS_NOTIFICATION, type OrderStatus } from "./status";
 import { nextOrderNumber } from "./numbering";
 import type { Prisma } from "@/generated/prisma/client";
@@ -47,6 +48,9 @@ export async function changeOrderStatus(
     });
     await tx.orderStatusEvent.create({ data: { orderId, from: order.status, to, actorId, note: opts.note, lat: opts.lat, lng: opts.lng } });
     await audit(tx, { actorId, action: "order.status_changed", entityType: "Order", entityId: orderId, before: { status: order.status }, after: { status: to, finalCents } });
+    if (order.companyId) {
+      await enqueueWebhookEvent(tx, order.companyId, "order.status_changed", { number: order.number, status: to, previousStatus: order.status, reference: order.customerRef });
+    }
 
     const event = STATUS_NOTIFICATION[to];
     if (event && !order.customer.anonymizedAt) {
