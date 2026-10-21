@@ -19,6 +19,7 @@ async function resetOwner() {
 // One owner account and TOTP codes that cannot be replayed: run once, on desktop, in one browser session.
 test.describe.serial("admin", () => {
   let page: Page;
+  let confirmedOrderUrl = "";
 
   test.beforeAll(async ({ browser, baseURL }, info) => {
     test.skip(info.project.name !== "desktop", "admin flow runs once, on desktop");
@@ -68,6 +69,7 @@ test("owner logs in, sets up 2FA, takes a phone order and edits the brand", asyn
   await statusPanel.getByLabel("Final price (EUR, incl. VAT)").fill("45");
   await statusPanel.getByRole("button", { name: "Move to: Confirmed" }).click();
   await expect(page.getByRole("button", { name: "Move to: Driver en route" })).toBeVisible();
+  confirmedOrderUrl = page.url();
 
   // Brand name is editable and shows on the public site
   const brand = `autobartje e2e ${Date.now() % 1000}`;
@@ -207,9 +209,55 @@ test("messages page shows the confirmation sent to the customer", async () => {
   await expect(page.getByText("Order confirmed").first()).toBeVisible();
 });
 
+test("accountant flow: invoice the confirmed order, download the PDF, record payment", async () => {
+  await page.goto(confirmedOrderUrl);
+  await page.getByRole("button", { name: "Create invoice" }).click();
+  await expect(page.getByRole("heading", { name: "Draft invoice" })).toBeVisible();
+  // Quoted €45 incl. VAT is invoiced as exactly €45.00 (€38.14 net + €6.86 VAT)
+  await expect(page.getByTestId("draft-totals")).toContainText("45.00");
+
+  // Business buyer with NUI; an invalid NUI is rejected and the input kept
+  await page.getByLabel("Name / company").fill("E2E Auto SH.P.K.");
+  await page.getByLabel("NUI (businesses, 9 digits)").fill("12345");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Please check the highlighted fields.")).toBeVisible();
+  await page.getByLabel("NUI (businesses, 9 digits)").fill("811111111");
+  await page.getByLabel("Email (invoice is sent here)").fill("e2e-buyer@example.com");
+  await page.getByRole("button", { name: "Add line" }).click();
+  await page.locator('input[name="line1.description"]').fill("Pritje");
+  await page.locator('input[name="line1.quantity"]').fill("2");
+  await page.locator('input[name="line1.unitPrice"]').fill("10");
+  await expect(page.getByTestId("draft-totals")).toContainText("65.00");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Issue invoice" }).click();
+  await expect(page.getByRole("heading", { name: /^Invoice AB-\d{4}-\d{5}$/ })).toBeVisible();
+  await expect(page.getByTestId("invoice-total")).toHaveText(/65\.00/);
+
+  const pdf = await page.request.get(await page.getByRole("link", { name: "PDF" }).getAttribute("href") as string);
+  expect(pdf.headers()["content-type"]).toBe("application/pdf");
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+
+  // Overpaying is refused; paying the rest marks it paid
+  await page.getByLabel("Amount (€)").fill("100");
+  await page.getByRole("button", { name: "Record payment" }).click();
+  await expect(page.getByText("The amount is more than what's still due.")).toBeVisible();
+  await page.getByLabel("Amount (€)").fill("65.00");
+  await page.getByRole("button", { name: "Record payment" }).click();
+  await expect(page.getByText("Paid", { exact: true })).toBeVisible();
+
+  // Export for the accountant
+  const xlsx = await page.request.get(`/api/admin/invoices/export?from=2020-01-01&to=2099-12-31&format=xlsx`);
+  expect(xlsx.headers()["content-type"]).toContain("spreadsheetml");
+  const csv = await (await page.request.get(`/api/admin/invoices/export?from=2020-01-01&to=2099-12-31&format=csv`)).text();
+  expect(csv).toContain("E2E Auto SH.P.K.;811111111");
+});
+
 test("admin pages fit a 360px phone", async () => {
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/users", "/admin/messages", "/admin/settings", "/admin/audit"]) {
+  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/invoices", "/admin/users", "/admin/messages", "/admin/settings", "/admin/audit"]) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} scrolls sideways`).toBeLessThanOrEqual(0);

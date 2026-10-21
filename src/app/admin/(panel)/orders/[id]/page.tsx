@@ -14,12 +14,13 @@ import { NoteForm, PriceForm, StatusButtons } from "@/components/admin/order-for
 import { AssignForm } from "@/components/admin/assign-form";
 import { Button } from "@/components/ui/button";
 import { unassignAction } from "@/app/admin/(panel)/dispatch/actions";
+import { createFromOrderAction } from "@/app/admin/(panel)/invoices/actions";
 import { assignChoices } from "@/server/dispatch/queries";
 import { defaultDurationMin } from "@/server/dispatch/conflicts";
 import { isOpen } from "@/server/orders/status";
 import { roundedNow, toBusinessLocal } from "@/lib/time";
 
-export default async function OrderDetailPage({ params }: PageProps<"/admin/orders/[id]">) {
+export default async function OrderDetailPage({ params, searchParams }: PageProps<"/admin/orders/[id]">) {
   const user = await requireStaff("orders.read");
   const { id } = await params;
   const order = await db.order.findUnique({
@@ -31,6 +32,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
       notes: { include: { author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
       documents: { where: { type: "VEHICLE_PHOTO" } },
       assignments: { where: { isActive: true }, include: { driver: { include: { user: true } }, truck: true } },
+      invoices: { where: { status: { not: "VOID" } }, select: { id: true, number: true, kind: true, status: true }, orderBy: { createdAt: "asc" } },
     },
   });
   if (!order) notFound();
@@ -44,6 +46,9 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
     getLocale(),
   ]);
   const td = await getTranslations("Admin.dispatch");
+  const ti = await getTranslations("Admin.invoices");
+  const sp = await searchParams;
+  const invoiceError = typeof sp.invoiceError === "string" && ["no_price", "exists", "not_found"].includes(sp.invoiceError) ? sp.invoiceError : null;
   const actorIds = [...new Set(order.statusEvents.map((e) => e.actorId).filter(Boolean))] as string[];
   const actors = new Map((await db.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
   const photos = storageConfigured() ? await Promise.all(order.documents.map(async (d) => ({ id: d.id, url: await presignDownload(d.objectKey) }))) : [];
@@ -153,6 +158,28 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
             {order.finalCents == null && order.estimatedCents != null && <p className="text-sm text-muted-foreground">{t("estimated")}</p>}
             {canUpdate && <div className="mt-3"><PriceForm orderId={order.id} defaultPrice={defaultPrice} /></div>}
           </Panel>
+          {can(user.permissions, "invoices.read") && (
+            <Panel title={ti("title")}>
+              {order.invoices.length > 0 ? (
+                <ul className="space-y-1">
+                  {order.invoices.map((i) => (
+                    <li key={i.id}>
+                      <Link href={`/admin/invoices/${i.id}`} className="font-semibold underline">
+                        {i.number ? ti("viewInvoice", { number: i.number }) : ti("draftTitle")}
+                      </Link>{" "}
+                      <span className="text-sm text-muted-foreground">{ti(`statuses.${i.status}`)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : can(user.permissions, "invoices.issue") ? (
+                <form action={createFromOrderAction}>
+                  <input type="hidden" name="orderId" value={order.id} />
+                  <Button type="submit" variant="secondary" disabled={priceValue == null}>{ti("createInvoice")}</Button>
+                  {(priceValue == null || invoiceError) && <p className="mt-2 text-sm text-muted-foreground">{ti(`errors.${invoiceError ?? "no_price"}` as never)}</p>}
+                </form>
+              ) : null}
+            </Panel>
+          )}
           <Panel title={td("assignment")}>
             {assignment ? (
               <p className="mb-3 rounded-lg bg-muted p-3 text-sm">
