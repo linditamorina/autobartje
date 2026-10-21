@@ -11,6 +11,13 @@ import { formatEur } from "@/lib/money";
 import { telHref, whatsappHref } from "@/lib/contact";
 import { Panel, StatusBadge, UrgentBadge, fmtDateTime } from "@/components/admin/ui";
 import { NoteForm, PriceForm, StatusButtons } from "@/components/admin/order-forms";
+import { AssignForm } from "@/components/admin/assign-form";
+import { Button } from "@/components/ui/button";
+import { unassignAction } from "@/app/admin/(panel)/dispatch/actions";
+import { assignChoices } from "@/server/dispatch/queries";
+import { defaultDurationMin } from "@/server/dispatch/conflicts";
+import { isOpen } from "@/server/orders/status";
+import { roundedNow, toBusinessLocal } from "@/lib/time";
 
 export default async function OrderDetailPage({ params }: PageProps<"/admin/orders/[id]">) {
   const user = await requireStaff("orders.read");
@@ -36,10 +43,14 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
     getTranslations("Admin.priority"),
     getLocale(),
   ]);
+  const td = await getTranslations("Admin.dispatch");
   const actorIds = [...new Set(order.statusEvents.map((e) => e.actorId).filter(Boolean))] as string[];
   const actors = new Map((await db.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
   const photos = storageConfigured() ? await Promise.all(order.documents.map(async (d) => ({ id: d.id, url: await presignDownload(d.objectKey) }))) : [];
   const canUpdate = can(user.permissions, "orders.update");
+  const canAssign = can(user.permissions, "orders.assign") && isOpen(order.status) && order.status !== "DRAFT";
+  const choices = canAssign ? await assignChoices() : null;
+  const assignment = order.assignments[0] ?? null;
   const priceValue = order.finalCents ?? order.estimatedCents;
   const defaultPrice = priceValue != null ? (priceValue / 100).toFixed(2) : "";
   const options = Object.entries((order.options as Record<string, unknown>) ?? {}).filter(([k, v]) => v === true && k !== "isDrivable").map(([k]) => k);
@@ -106,11 +117,6 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
                 <dd className="text-sm text-muted-foreground">{t("source")}: {tc(order.channel)}{order.leadSource && ` · ${order.leadSource}`}</dd>
               </div>
             </dl>
-            {order.assignments[0] && (
-              <p className="mt-3 rounded-lg bg-muted p-3 text-sm">
-                🚚 {order.assignments[0].driver.user.name} · {order.assignments[0].truck.plate}
-              </p>
-            )}
           </Panel>
 
           {photos.length > 0 && (
@@ -146,6 +152,35 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
             <p className="text-3xl font-extrabold tabular-nums">{priceValue != null ? formatEur(priceValue, locale) : "–"}</p>
             {order.finalCents == null && order.estimatedCents != null && <p className="text-sm text-muted-foreground">{t("estimated")}</p>}
             {canUpdate && <div className="mt-3"><PriceForm orderId={order.id} defaultPrice={defaultPrice} /></div>}
+          </Panel>
+          <Panel title={td("assignment")}>
+            {assignment ? (
+              <p className="mb-3 rounded-lg bg-muted p-3 text-sm">
+                🚚 <span className="font-semibold">{assignment.driver.user.name}</span> · {assignment.truck.plate}
+                <br />
+                {fmtDateTime(assignment.plannedStart, locale)} – {fmtDateTime(assignment.plannedEnd, locale)}
+              </p>
+            ) : (
+              <p className="mb-3 text-sm text-muted-foreground">{td("notAssigned")}</p>
+            )}
+            {choices && (
+              <AssignForm
+                orderId={order.id}
+                drivers={choices.drivers}
+                trucks={choices.trucks}
+                current={assignment ? { driverId: assignment.driverId, truckId: assignment.truckId } : undefined}
+                defaultStart={toBusinessLocal(assignment?.plannedStart ?? (order.requestedAt && !order.isAsap ? order.requestedAt : roundedNow()))}
+                defaultDurationMin={
+                  assignment ? Math.round((assignment.plannedEnd.getTime() - assignment.plannedStart.getTime()) / 60_000) : defaultDurationMin(order.service, order.durationMin)
+                }
+              />
+            )}
+            {choices && assignment && (
+              <form action={unassignAction} className="mt-2">
+                <input type="hidden" name="orderId" value={order.id} />
+                <Button type="submit" variant="ghost" size="sm">{td("unassign")}</Button>
+              </form>
+            )}
           </Panel>
           {canUpdate && (
             <Panel title={t("changeStatus")}>

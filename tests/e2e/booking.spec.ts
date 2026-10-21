@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+// Stand-in for Cloudflare's widget so the tests don't need the network. It answers with
+// Cloudflare's dummy token after a short delay, like the real widget with the test site key.
+test.beforeEach(async ({ page }) => {
+  await page.route("https://challenges.cloudflare.com/turnstile/**", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.turnstile = { render(el, o) { setTimeout(() => o.callback("XXXX.DUMMY.TOKEN.XXXX"), 300); return "w"; }, remove() {} };`,
+    }),
+  );
+});
+
 test.describe("quote calculator", () => {
   test.use({ geolocation: { latitude: 42.6655, longitude: 20.3123 }, permissions: ["geolocation"] });
 

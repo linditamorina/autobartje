@@ -8,6 +8,10 @@ export async function verifyTurnstile(token: string | null | undefined, ip: stri
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return process.env.NODE_ENV !== "production";
   if (!token) return false;
+  // Cloudflare's documented test secrets have fixed answers (1x pass, 2x fail, 3x token
+  // already spent); answer them locally so CI and offline runs don't depend on Cloudflare.
+  const testSecret = /^([123])x0{31}AA$/.exec(secret);
+  if (testSecret) return testSecret[1] === "1";
   try {
     const body = new URLSearchParams({ secret, response: token });
     if (ip) body.set("remoteip", ip);

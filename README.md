@@ -47,7 +47,7 @@ which encrypts authenticator secrets at rest; changing it later forces every sta
 prisma/            schema.prisma, migrations, seed.ts
 messages/          UI translations (sq, en, de)
 src/app/[locale]/  public website (localised routes; sq has no URL prefix)
-src/app/admin/     back office: login + 2FA, orders (table/board), manual orders, settings, audit log
+src/app/admin/     back office: login + 2FA, orders, dispatch, fleet, prices, staff, settings, audit log
 src/app/api/       route handlers: consent log, uploads, webhooks, cron
 src/components/    ui/ primitives, marketing/, shared/
 src/server/        business logic without React: pricing, invoicing, settings, auth, db
