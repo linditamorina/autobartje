@@ -59,14 +59,18 @@ export async function exportRows(from: Date, to: Date): Promise<ExportRow[]> {
 }
 
 /** CSV for Excel in Kosovo/Germany: semicolon separated, decimal comma, UTF-8 with BOM. */
-export function toCsv(rows: ExportRow[]): string {
+export function csvTable(headers: string[], rows: (string | number)[][]): string {
   const cell = (v: string | number) => {
     const s = typeof v === "number" ? v.toFixed(2).replace(".", ",") : v;
     return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   // A leading =, +, - or @ would run as a formula in Excel: prefix text cells that start that way.
   const safe = (v: string | number) => (typeof v === "string" && /^[=+\-@]/.test(v) ? `'${v}` : v);
-  return "﻿" + [HEADERS.map(([, h]) => h).join(";"), ...rows.map((r) => HEADERS.map(([k]) => cell(safe(r[k]))).join(";"))].join("\r\n") + "\r\n";
+  return "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.map((v) => cell(safe(v))).join(";"))].join("\r\n") + "\r\n";
+}
+
+export function toCsv(rows: ExportRow[]): string {
+  return csvTable(HEADERS.map(([, h]) => h), rows.map((r) => HEADERS.map(([k]) => r[k])));
 }
 
 export async function toXlsx(rows: ExportRow[]): Promise<Uint8Array> {

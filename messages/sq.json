@@ -946,6 +946,61 @@
       "callDriver": "Thirr shoferin",
       "routeDriven": "Rruga e bërë",
       "lastPosition": "Lokacioni i fundit {ago} ({time})"
+    },
+    "reports": {
+      "title": "Raportet",
+      "period": "Periudha",
+      "periods": {
+        "month": "Ky muaj",
+        "lastMonth": "Muaji i kaluar",
+        "30d": "30 ditët e fundit",
+        "year": "Ky vit"
+      },
+      "from": "Nga",
+      "to": "Deri",
+      "show": "Shfaq",
+      "exportOrders": "Porositë (CSV)",
+      "summary": "Përmbledhje",
+      "noData": "Nuk ka të dhëna në këtë periudhë.",
+      "minutes": "{n} min",
+      "showTable": "Shfaq si tabelë",
+      "direct": "Direkt / e panjohur",
+      "kpi": {
+        "orders": "Porosi",
+        "ordersHint": "{done} të përfunduara · {b2b} nga klientë biznesi",
+        "value": "Vlera e porosive të përfunduara",
+        "avg": "Mesatarja {avg}",
+        "invoiced": "Faturuar",
+        "net": "{net} pa TVSH",
+        "cancelled": "Anuluar",
+        "cancelledHint": "{n, plural, one {# porosi} other {# porosi}}",
+        "arrival": "Koha e arritjes, thirrje urgjente",
+        "arrivalHint": "Mediana · 90% brenda {p90} · {n} thirrje",
+        "arrivalNone": "Asnjë thirrje urgjente e përfunduar",
+        "confirm": "Koha deri në konfirmim",
+        "confirmHint": "Mediana, nga rezervimi te konfirmimi",
+        "conversion": "Llogaritje çmimi që u rezervuan",
+        "conversionHint": "{n} llogaritje çmimi",
+        "received": "Para të arkëtuara"
+      },
+      "cols": {
+        "orders": "Porosi",
+        "done": "Përfunduar",
+        "value": "Vlera",
+        "jobs": "Punë",
+        "arrival": "Arritja"
+      },
+      "revenueTitle": "Faturuar për muaj",
+      "revenueCaption": "12 muajt e fundit, me TVSH. Notat e kreditit zbriten.",
+      "byService": "Sipas shërbimit",
+      "byChannel": "Sipas kanalit",
+      "bySource": "Sipas burimit",
+      "bySourceHint": "Nga erdhën klientët e faqes (fushatë reklamash ose faqe tjetër).",
+      "drivers": "Shoferët (punë të përfunduara)",
+      "busyTitle": "Kur vijnë porositë",
+      "busiest": "Më e ngarkuara: {day} në {hour}:00 ({n, plural, one {# porosi} other {# porosi}}). Më e errët do të thotë më shumë porosi.",
+      "cell": "{day} {hour}:00 – {n, plural, one {# porosi} other {# porosi}}",
+      "footnote": "Porositë numërohen sipas ditës kur erdhën. Vlera është çmimi final, ose vlerësimi kur nuk ka çmim final. Koha e arritjes llogaritet nga thirrja ose rezervimi deri kur kamioni arrin te klienti."
     }
   },
   "Pages": {

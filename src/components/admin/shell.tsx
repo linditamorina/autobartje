@@ -28,7 +28,7 @@ const NAV: { href: string; key: string; icon: typeof Gauge; permission?: Permiss
 ];
 
 /** Pages that exist in this release; the rest appear as their PRs land. */
-const LIVE = new Set(["dashboard", "orders", "dispatch", "liveMap", "fleet", "pricing", "invoices", "customers", "content", "users", "messages", "settings", "audit"]);
+const LIVE = new Set(["dashboard", "orders", "dispatch", "liveMap", "fleet", "pricing", "invoices", "customers", "reports", "content", "users", "messages", "settings", "audit"]);
 
 export async function AdminShell({ user, brand, children }: { user: { name?: string | null; role: string; permissions: string[] }; brand: Brand; children: React.ReactNode }) {
   const t = await getTranslations("Admin.nav");

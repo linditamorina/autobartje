@@ -107,6 +107,16 @@ past the retention periods set in Settings.
 - The admin order page keeps the route driven for each order. Points are deleted after "Truck GPS routes" days in Settings → Data retention (90 by default).
 - Maps need `NEXT_PUBLIC_GOOGLE_MAPS_KEY` (the same key as the address search). Without it the pages show the same facts as text with an "Open in Google Maps" link. Arrival times are estimated from the straight-line distance, not live traffic.
 
+## Reports
+
+Admin → Reports (Owner, Admin, Accountant) shows a period (this month, last month, last 30 days, this year or any dates):
+orders, finished orders and their value, invoiced amounts with and without VAT, the cancellation rate, the median arrival
+time on urgent call-outs (with the time 90 % of them stayed under), the time to confirm a booking, how many price checks
+became bookings and the money received per payment method. Below that: invoiced per month for the last 12 months, orders
+by service, channel and lead source, finished jobs per driver, and when orders come in by weekday and hour. "Orders (CSV)"
+downloads the period's orders for Excel (without customer contact details). The maths is in `src/server/reports/compute.ts`
+with unit tests.
+
 ## Online payments (Stripe)
 
 - Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to turn them on. In the Stripe dashboard add a webhook to `https://<your domain>/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `charge.refunded`. Turn on the payment methods you want (cards, Apple Pay, Google Pay) under Settings → Payment methods.
@@ -147,4 +157,4 @@ pending migrations on start.
 
 1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
 2. **Done**: driver PWA with inspections, order tracking page, online payments (Stripe), B2B portal, WhatsApp Business API.
-3. **In progress**: live GPS (done), advanced analytics, partner API.
+3. **In progress**: live GPS (done), reports (done), partner API.

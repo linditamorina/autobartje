@@ -946,6 +946,61 @@
       "callDriver": "Fahrer anrufen",
       "routeDriven": "Gefahrene Route",
       "lastPosition": "Letzter Standort {ago} ({time})"
+    },
+    "reports": {
+      "title": "Berichte",
+      "period": "Zeitraum",
+      "periods": {
+        "month": "Dieser Monat",
+        "lastMonth": "Letzter Monat",
+        "30d": "Letzte 30 Tage",
+        "year": "Dieses Jahr"
+      },
+      "from": "Von",
+      "to": "Bis",
+      "show": "Anzeigen",
+      "exportOrders": "Aufträge (CSV)",
+      "summary": "Übersicht",
+      "noData": "Keine Daten in diesem Zeitraum.",
+      "minutes": "{n} Min.",
+      "showTable": "Als Tabelle anzeigen",
+      "direct": "Direkt / unbekannt",
+      "kpi": {
+        "orders": "Aufträge",
+        "ordersHint": "{done} abgeschlossen · {b2b} von Geschäftskunden",
+        "value": "Wert abgeschlossener Aufträge",
+        "avg": "Durchschnitt {avg}",
+        "invoiced": "Fakturiert",
+        "net": "{net} ohne MwSt.",
+        "cancelled": "Storniert",
+        "cancelledHint": "{n, plural, one {# Auftrag} other {# Aufträge}}",
+        "arrival": "Ankunftszeit, Notfalleinsätze",
+        "arrivalHint": "Median · 90 % innerhalb {p90} · {n} Einsätze",
+        "arrivalNone": "Keine abgeschlossenen Notfalleinsätze",
+        "confirm": "Zeit bis zur Bestätigung",
+        "confirmHint": "Median, von Buchung bis Bestätigung",
+        "conversion": "Preisabfragen mit Buchung",
+        "conversionHint": "{n} Preisabfragen",
+        "received": "Zahlungseingang"
+      },
+      "cols": {
+        "orders": "Aufträge",
+        "done": "Abgeschlossen",
+        "value": "Wert",
+        "jobs": "Aufträge",
+        "arrival": "Ankunft"
+      },
+      "revenueTitle": "Fakturiert pro Monat",
+      "revenueCaption": "Letzte 12 Monate, inkl. MwSt. Gutschriften werden abgezogen.",
+      "byService": "Nach Leistung",
+      "byChannel": "Nach Kanal",
+      "bySource": "Nach Quelle",
+      "bySourceHint": "Woher Website-Kunden kamen (Werbekampagne oder verweisende Seite).",
+      "drivers": "Fahrer (abgeschlossene Aufträge)",
+      "busyTitle": "Wann Aufträge eingehen",
+      "busiest": "Am meisten: {day} um {hour}:00 ({n, plural, one {# Auftrag} other {# Aufträge}}). Dunkler heißt mehr Aufträge.",
+      "cell": "{day} {hour}:00 – {n, plural, one {# Auftrag} other {# Aufträge}}",
+      "footnote": "Aufträge zählen nach dem Eingangstag. Der Wert ist der Endpreis, sonst die Schätzung. Die Ankunftszeit läuft vom Anruf oder der Buchung bis der Wagen beim Kunden ist."
     }
   },
   "Pages": {

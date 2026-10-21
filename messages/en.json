@@ -946,6 +946,61 @@
       "callDriver": "Call driver",
       "routeDriven": "Route driven",
       "lastPosition": "Last position {ago} ({time})"
+    },
+    "reports": {
+      "title": "Reports",
+      "period": "Period",
+      "periods": {
+        "month": "This month",
+        "lastMonth": "Last month",
+        "30d": "Last 30 days",
+        "year": "This year"
+      },
+      "from": "From",
+      "to": "To",
+      "show": "Show",
+      "exportOrders": "Orders (CSV)",
+      "summary": "Summary",
+      "noData": "No data in this period.",
+      "minutes": "{n} min",
+      "showTable": "Show as table",
+      "direct": "Direct / unknown",
+      "kpi": {
+        "orders": "Orders",
+        "ordersHint": "{done} finished · {b2b} from business customers",
+        "value": "Value of finished orders",
+        "avg": "Average {avg}",
+        "invoiced": "Invoiced",
+        "net": "{net} without VAT",
+        "cancelled": "Cancelled",
+        "cancelledHint": "{n, plural, one {# order} other {# orders}}",
+        "arrival": "Arrival time, urgent call-outs",
+        "arrivalHint": "Median · 90% within {p90} · {n} call-outs",
+        "arrivalNone": "No urgent call-outs finished",
+        "confirm": "Time to confirm",
+        "confirmHint": "Median, from booking to confirmation",
+        "conversion": "Price checks that booked",
+        "conversionHint": "{n} price checks",
+        "received": "Money received"
+      },
+      "cols": {
+        "orders": "Orders",
+        "done": "Finished",
+        "value": "Value",
+        "jobs": "Jobs",
+        "arrival": "Arrival"
+      },
+      "revenueTitle": "Invoiced per month",
+      "revenueCaption": "Last 12 months, with VAT. Credit notes are subtracted.",
+      "byService": "By service",
+      "byChannel": "By channel",
+      "bySource": "By lead source",
+      "bySourceHint": "Where website customers came from (ad campaign or referring site).",
+      "drivers": "Drivers (finished jobs)",
+      "busyTitle": "When orders come in",
+      "busiest": "Busiest: {day} at {hour}:00 ({n, plural, one {# order} other {# orders}}). Darker means more orders.",
+      "cell": "{day} {hour}:00 – {n, plural, one {# order} other {# orders}}",
+      "footnote": "Orders count by the day they came in. Value is the final price, or the estimate where none was set. Arrival time runs from the call or booking to the truck reaching the customer."
     }
   },
   "Pages": {
