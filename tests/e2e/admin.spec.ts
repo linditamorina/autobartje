@@ -183,6 +183,9 @@ test("owner edits a price and checks it in the price tester", async () => {
 
 test("owner adds a dispatcher account", async () => {
   const email = `dispatcher-${Date.now()}@example.com`;
+  await page.goto("/admin");
+  await page.getByRole("link", { name: "Users" }).first().click();
+  await expect(page.getByRole("heading", { name: "Staff accounts" })).toBeVisible();
   await page.goto("/admin/users/new");
   await page.getByLabel("Full name").fill("E2E Dispatcher");
   await page.getByLabel("Email (login)").fill(email);

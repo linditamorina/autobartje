@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, ExternalLink, FileText, Gauge, LogOut, Map, Receipt, ScrollText, Settings, Tags, Truck, Users } from "lucide-react";
+import { BarChart3, ClipboardList, ExternalLink, FileText, Gauge, LogOut, Map, Receipt, ScrollText, Settings, Tags, Truck, UserCog, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { signOut } from "@/server/auth/config";
@@ -20,6 +20,7 @@ const NAV: { href: string; key: string; icon: typeof Gauge; permission?: Permiss
   { href: "/admin/customers", key: "customers", icon: Users, permission: "customers.read" },
   { href: "/admin/reports", key: "reports", icon: BarChart3, permission: "reports.read" },
   { href: "/admin/content", key: "content", icon: FileText, permission: "cms.manage" },
+  { href: "/admin/users", key: "users", icon: UserCog, permission: "users.manage" },
   { href: "/admin/settings", key: "settings", icon: Settings, permission: "settings.manage" },
   { href: "/admin/audit", key: "audit", icon: ScrollText, permission: "audit.read" },
 ];
