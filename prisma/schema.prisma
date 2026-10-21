@@ -149,6 +149,7 @@ enum PaymentStatus {
 }
 
 enum DocumentType {
+  VEHICLE_PHOTO
   REGISTRATION
   SALES_CONTRACT
   CMR
@@ -198,6 +199,7 @@ model User {
   passwordHash  String?   // argon2id; null for magic-link-only B2B users
   totpSecret    String?   // encrypted at rest (AES-GCM, key in env)
   totpEnabledAt DateTime?
+  totpLastStep  Int?      // last accepted time step, blocks code replay
   locale        Locale    @default(sq)
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
@@ -364,7 +366,7 @@ model Vehicle {
 
 model Order {
   id              String        @id @default(cuid())
-  number          String        @unique // AB-2026-000123
+  number          String        @unique // P-2026-00042
   status          OrderStatus   @default(RECEIVED)
   priority        OrderPriority @default(NORMAL)
   service         ServiceType

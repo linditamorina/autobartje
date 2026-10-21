@@ -18,7 +18,7 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: `npm run start -- -p ${port}`,
+    command: process.env.E2E_SERVER ?? `npm run start -- -p ${port}`,
     port,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

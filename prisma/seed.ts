@@ -140,7 +140,7 @@ async function main() {
     for (const [i, status] of statuses.entries()) {
       await db.order.create({
         data: {
-          number: `AB-${new Date().getFullYear()}-${String(i + 1).padStart(6, "0")}`,
+          number: `P-${new Date().getFullYear()}-${String(i + 1).padStart(5, "0")}`,
           status,
           priority: i === 0 ? "URGENT" : "NORMAL",
           service: i === 0 ? "EMERGENCY_TOWING" : "DOMESTIC_TRANSPORT",
