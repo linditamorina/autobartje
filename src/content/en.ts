@@ -231,6 +231,7 @@ We do not sell your data.
 
 - Quotes without a booking: {{retention.draftsDays}} days
 - Inspection photos: {{retention.inspectionPhotosDays}} days
+- The route our truck drove for your order (GPS): {{retention.gpsDays}} days
 - Other order documents: {{retention.documentsDays}} days
 - Invoices: as long as tax law requires
 

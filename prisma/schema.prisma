@@ -420,6 +420,7 @@ model Order {
   statusEvents    OrderStatusEvent[]
   assignments     Assignment[]
   inspections     Inspection[]
+  positions       DriverPosition[]
   quotes          Quote[]
   invoices        Invoice[]
   documents       Document[]
@@ -498,10 +499,33 @@ model Driver {
   shifts           DriverShift[]
   assignments      Assignment[]
   inspections      Inspection[]
-  // Phase 3 live GPS: latest position, only written during an active shift/job
+  positions        DriverPosition[]
+  // Latest position, only written while the driver is on a job (see DriverPosition)
   lastLat          Float?
   lastLng          Float?
   lastSeenAt       DateTime?
+}
+
+/// GPS points the driver app sends while a job is under way (driving to pickup,
+/// loading, driving to drop-off). Nothing is recorded between jobs. Deleted after
+/// retention.gpsDays.
+model DriverPosition {
+  id         String   @id @default(cuid())
+  driverId   String
+  driver     Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  lat        Float
+  lng        Float
+  accuracyM  Int?
+  speedKmh   Int?
+  heading    Int?
+  recordedAt DateTime // phone time, clamped to the server's
+  createdAt  DateTime @default(now())
+
+  @@index([orderId, recordedAt])
+  @@index([driverId, recordedAt])
+  @@index([createdAt])
 }
 
 model DriverShift {

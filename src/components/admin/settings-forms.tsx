@@ -90,6 +90,7 @@ export function SettingsForm({ values }: { values: Settings }) {
       { key: "retention.inspectionPhotosDays", label: t("retentionPhotos"), type: "number" },
       { key: "retention.documentsDays", label: t("retentionDocs"), type: "number" },
       { key: "retention.draftsDays", label: t("retentionDrafts"), type: "number" },
+      { key: "retention.gpsDays", label: t("retentionGps"), type: "number" },
     ] },
   ];
 

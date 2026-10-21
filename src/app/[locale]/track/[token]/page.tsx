@@ -5,10 +5,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LiveRefresh } from "@/components/tracking/live-refresh";
+import { LiveMap } from "@/components/shared/live-map";
 import { PayButton } from "@/components/tracking/pay-button";
-import { formatPhone, telHref, whatsappHref } from "@/lib/contact";
+import { formatPhone, mapsLink, telHref, whatsappHref } from "@/lib/contact";
 import { formatEur } from "@/lib/money";
-import { BUSINESS_TZ } from "@/lib/time";
+import { BUSINESS_TZ, minutesAgo } from "@/lib/time";
 import { trackingSteps } from "@/lib/tracking";
 import { cn } from "@/lib/utils";
 import { getTracking } from "@/server/orders/tracking";
@@ -72,6 +73,31 @@ export default async function TrackPage({ params, searchParams }: PageProps<"/[l
             </li>
           ))}
         </ol>
+      )}
+
+      {tr.truck && (
+        <section className="space-y-2 rounded-xl border-2 border-primary bg-card p-4 dark:border-foreground" aria-labelledby="truck-now" data-testid="truck-live">
+          <h2 id="truck-now" className="flex items-center gap-2 font-bold"><Truck aria-hidden className="size-5" /> {t("truckNow")}</h2>
+          {tr.truck.km != null && (
+            <p className="text-lg font-extrabold">
+              {tr.truck.etaMin == null
+                ? t(tr.status === "IN_TRANSIT" ? "truckAtDropoff" : "truckHere")
+                : t(tr.status === "IN_TRANSIT" ? "truckToDropoff" : "truckToYou", { km: Math.max(1, Math.round(tr.truck.km)), min: tr.truck.etaMin })}
+            </p>
+          )}
+          <LiveMap
+            language={locale}
+            className="h-64 w-full overflow-hidden rounded-lg border border-border bg-muted"
+            points={[
+              { id: "truck", kind: "truck", lat: tr.truck.lat, lng: tr.truck.lng, title: tr.driverName ?? "" },
+              ...(tr.target ? [{ id: "target", kind: tr.status === "IN_TRANSIT" ? ("dropoff" as const) : ("pickup" as const), ...tr.target, title: "" }] : []),
+            ]}
+          />
+          <p className="text-sm text-muted-foreground">
+            {t("truckUpdated", { ago: minutesAgo(tr.truck.at, locale) })}{tr.truck.etaMin != null && ` · ${t("etaRough")}`} ·{" "}
+            <a href={mapsLink(tr.truck.lat, tr.truck.lng)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{t("openMap")}</a>
+          </p>
+        </section>
       )}
 
       <dl className="space-y-3 rounded-xl border border-border bg-card p-4">

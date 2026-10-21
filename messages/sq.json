@@ -255,7 +255,8 @@
       "menu": "Menyja",
       "viewSite": "Shiko faqen",
       "reports": "Raportet",
-      "messages": "Mesazhet"
+      "messages": "Mesazhet",
+      "liveMap": "Harta live"
     },
     "login": {
       "title": "Hyrja e stafit",
@@ -444,7 +445,8 @@
       "logoSizeError": "Logoja duhet të jetë më e vogël se 1 MB.",
       "nuiHelp": "9 shifra, shfaqet në çdo faturë.",
       "reviewUrl": "Linku për vlerësim në Google",
-      "reviewUrlHelp": "U dërgohet klientëve 2 orë pas dorëzimit. Lëreni bosh që të mos dërgohet asgjë."
+      "reviewUrlHelp": "U dërgohet klientëve 2 orë pas dorëzimit. Lëreni bosh që të mos dërgohet asgjë.",
+      "retentionGps": "Rrugët GPS të kamionëve"
     },
     "audit": {
       "title": "Regjistri i ndryshimeve",
@@ -929,6 +931,21 @@
       "monthlyEmpty": "Asnjë porosi për t'u faturuar këtë muaj.",
       "recentOrders": "Porositë e fundit",
       "noOrders": "Ende asnjë porosi."
+    },
+    "liveMap": {
+      "title": "Harta live",
+      "legend": "Portokalli: kamionët (të zbehtë kur nuk janë parë 10 minuta). A blu: marrja. B jeshile: dorëzimi. Faqja rifreskohet çdo 15 sekonda.",
+      "onTheRoad": "Në rrugë",
+      "none": "Asnjë kamion nuk është në punë tani.",
+      "seen": "Parë {ago}",
+      "stale": "Parë për herë të fundit {ago}",
+      "distance": "edhe {km} km",
+      "eta": "rreth {min} min",
+      "noPosition": "Ende pa lokacion: telefoni i shoferit nuk ka dërguar asnjë.",
+      "openMap": "Hape në Google Maps",
+      "callDriver": "Thirr shoferin",
+      "routeDriven": "Rruga e bërë",
+      "lastPosition": "Lokacioni i fundit {ago} ({time})"
     }
   },
   "Pages": {
@@ -1085,6 +1102,12 @@
       "storage_unavailable": "Ruajtja e fotove nuk është në dispozicion. Telefononi zyrën.",
       "rate_limited": "Shumë ngarkime. Prisni pak.",
       "forbidden": "Nuk lejohet."
+    },
+    "gps": {
+      "starting": "Po ndizet lokacioni…",
+      "sharing": "Lokacioni ndahet me zyrën dhe klientin gjatë kësaj pune. Mbajeni ekranin ndezur.",
+      "denied": "Lokacioni është i bllokuar. Lejojeni për këtë faqe te cilësimet e telefonit që zyra ta shohë kamionin.",
+      "unavailable": "Nuk ka sinjal GPS tani. Mbajeni ekranin ndezur; do të provojë përsëri."
     }
   },
   "Track": {
@@ -1141,7 +1164,15 @@
       "rate_limited": "Shumë përpjekje. Prisni pak minuta."
     },
     "paidThanks": "Faleminderit, e morëm pagesën tuaj.",
-    "paidPending": "Faleminderit. Po e konfirmojmë pagesën; faqja përditësohet pas pak."
+    "paidPending": "Faleminderit. Po e konfirmojmë pagesën; faqja përditësohet pas pak.",
+    "truckNow": "Ku është kamioni tani",
+    "truckToYou": "Rreth {km} km larg, arrin për rreth {min} min",
+    "truckToDropoff": "Rreth {km} km deri te destinacioni, rreth {min} min",
+    "truckHere": "Kamioni është te adresa e marrjes",
+    "truckAtDropoff": "Kamioni është te destinacioni",
+    "truckUpdated": "Lokacioni {ago}",
+    "etaRough": "koha është e përafërt",
+    "openMap": "Hape në Google Maps"
   },
   "Portal": {
     "nav": {

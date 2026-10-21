@@ -231,6 +231,7 @@ Nuk i shesim të dhënat tuaja.
 
 - Ofertat pa rezervim: {{retention.draftsDays}} ditë
 - Fotografitë e inspektimit: {{retention.inspectionPhotosDays}} ditë
+- Rruga që kamioni ynë bëri për porosinë tuaj (GPS): {{retention.gpsDays}} ditë
 - Dokumentet e tjera të porosisë: {{retention.documentsDays}} ditë
 - Faturat: aq sa kërkon ligji tatimor
 

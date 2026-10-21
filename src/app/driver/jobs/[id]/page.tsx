@@ -4,6 +4,8 @@ import { Camera, Check, MapPin, MessageCircle, Navigation, Phone } from "lucide-
 import { getLocale, getTranslations } from "next-intl/server";
 import { requireDriver } from "@/server/auth/guard";
 import { DriverError, driverForUser, driverJob } from "@/server/driver/jobs";
+import { driverIsMoving } from "@/server/driver/location";
+import { LocationSharing } from "@/components/driver/location-sharing";
 import { inspectionComplete, inspectionOpen, missingForInspection, nextDriverStep, type InspectionKind } from "@/server/driver/steps";
 import { DriverHeader } from "@/components/driver/header";
 import { StepButton } from "@/components/driver/step-button";
@@ -32,6 +34,7 @@ export default async function JobPage({ params }: PageProps<"/driver/jobs/[id]">
   });
   if (!job) notFound();
   const { order, truck } = job;
+  const moving = await driverIsMoving(driver.id);
 
   const step = nextDriverStep(order.status, order.service);
   const roadside = order.service === "ROADSIDE_ASSISTANCE";
@@ -46,6 +49,7 @@ export default async function JobPage({ params }: PageProps<"/driver/jobs/[id]">
     <>
       <DriverHeader title={order.number} back="/driver" />
       <main className="mx-auto max-w-2xl space-y-4 p-3 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+        {moving && <LocationSharing />}
         <section className="space-y-2 rounded-xl bg-card p-4">
           <p className="flex flex-wrap items-center gap-2">
             <StatusBadge status={order.status} label={ts(order.status)} />

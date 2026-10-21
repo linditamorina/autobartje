@@ -4,7 +4,9 @@ import { db } from "@/server/db";
 import { audit } from "@/server/audit";
 import { putPrivateObject } from "@/server/files/storage";
 import { changeOrderStatus } from "@/server/orders/manage";
+import { validCoord } from "@/lib/geo";
 import { startOfBusinessDay } from "@/lib/time";
+import { storePosition } from "./location";
 import { inspectionComplete, inspectionOpen, missingForInspection, nextDriverStep, type DriverPhotoAngle, type InspectionKind } from "./steps";
 
 export class DriverError extends Error {
@@ -88,7 +90,7 @@ export async function advanceJob(userId: string, orderId: string, to: string, po
   const now = new Date();
   if (step.action === "start" && !a.startedAt) await db.assignment.update({ where: { id: a.id }, data: { startedAt: now } });
   if (step.to === "DELIVERED") await db.assignment.update({ where: { id: a.id }, data: { finishedAt: now } });
-  if (pos.lat != null && pos.lng != null) await db.driver.update({ where: { id: driver.id }, data: { lastLat: pos.lat, lastLng: pos.lng, lastSeenAt: now } });
+  if (pos.lat != null && pos.lng != null && validCoord(pos.lat, pos.lng)) await storePosition(driver.id, orderId, { lat: pos.lat, lng: pos.lng });
   return step;
 }
 

@@ -255,7 +255,8 @@
       "menu": "Menü",
       "viewSite": "Website ansehen",
       "reports": "Berichte",
-      "messages": "Nachrichten"
+      "messages": "Nachrichten",
+      "liveMap": "Live-Karte"
     },
     "login": {
       "title": "Mitarbeiter-Login",
@@ -444,7 +445,8 @@
       "logoSizeError": "Das Logo muss kleiner als 1 MB sein.",
       "nuiHelp": "9 Ziffern, steht auf jeder Rechnung.",
       "reviewUrl": "Google-Bewertungslink",
-      "reviewUrlHelp": "Wird Kunden 2 Stunden nach der Zustellung gesendet. Leer lassen, um nichts zu senden."
+      "reviewUrlHelp": "Wird Kunden 2 Stunden nach der Zustellung gesendet. Leer lassen, um nichts zu senden.",
+      "retentionGps": "GPS-Routen der Fahrzeuge"
     },
     "audit": {
       "title": "Änderungsprotokoll",
@@ -929,6 +931,21 @@
       "monthlyEmpty": "Keine Aufträge für diesen Monat abzurechnen.",
       "recentOrders": "Letzte Aufträge",
       "noOrders": "Noch keine Aufträge."
+    },
+    "liveMap": {
+      "title": "Live-Karte",
+      "legend": "Orange: Fahrzeuge (blass, wenn seit 10 Minuten nicht gesehen). Blau A: Abholung. Grün B: Lieferung. Die Seite aktualisiert sich alle 15 Sekunden.",
+      "onTheRoad": "Unterwegs",
+      "none": "Gerade ist kein Fahrzeug im Einsatz.",
+      "seen": "Gesehen {ago}",
+      "stale": "Zuletzt gesehen {ago}",
+      "distance": "noch {km} km",
+      "eta": "etwa {min} Min.",
+      "noPosition": "Noch kein Standort: Das Telefon des Fahrers hat keinen gesendet.",
+      "openMap": "In Google Maps öffnen",
+      "callDriver": "Fahrer anrufen",
+      "routeDriven": "Gefahrene Route",
+      "lastPosition": "Letzter Standort {ago} ({time})"
     }
   },
   "Pages": {
@@ -1085,6 +1102,12 @@
       "storage_unavailable": "Fotospeicher nicht verfügbar. Bitte das Büro anrufen.",
       "rate_limited": "Zu viele Uploads. Bitte kurz warten.",
       "forbidden": "Nicht erlaubt."
+    },
+    "gps": {
+      "starting": "Standort wird eingeschaltet…",
+      "sharing": "Standort wird während dieses Auftrags mit dem Büro und dem Kunden geteilt. Bildschirm eingeschaltet lassen.",
+      "denied": "Standort ist blockiert. Erlauben Sie ihn für diese Seite in den Telefoneinstellungen, damit das Büro den Wagen sieht.",
+      "unavailable": "Gerade kein GPS-Signal. Bildschirm eingeschaltet lassen; es wird erneut versucht."
     }
   },
   "Track": {
@@ -1141,7 +1164,15 @@
       "rate_limited": "Zu viele Versuche. Bitte einige Minuten warten."
     },
     "paidThanks": "Vielen Dank, wir haben Ihre Zahlung erhalten.",
-    "paidPending": "Vielen Dank. Wir bestätigen Ihre Zahlung; die Seite aktualisiert sich gleich."
+    "paidPending": "Vielen Dank. Wir bestätigen Ihre Zahlung; die Seite aktualisiert sich gleich.",
+    "truckNow": "Wo der Abschleppwagen gerade ist",
+    "truckToYou": "Etwa {km} km entfernt, in etwa {min} Min. da",
+    "truckToDropoff": "Etwa {km} km bis zum Ziel, etwa {min} Min.",
+    "truckHere": "Der Wagen ist an der Abholadresse",
+    "truckAtDropoff": "Der Wagen ist am Ziel",
+    "truckUpdated": "Standort {ago}",
+    "etaRough": "Zeit ist grob geschätzt",
+    "openMap": "In Google Maps öffnen"
   },
   "Portal": {
     "nav": {

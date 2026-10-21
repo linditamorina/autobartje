@@ -255,7 +255,8 @@
       "menu": "Menu",
       "viewSite": "View website",
       "reports": "Reports",
-      "messages": "Messages"
+      "messages": "Messages",
+      "liveMap": "Live map"
     },
     "login": {
       "title": "Staff login",
@@ -444,7 +445,8 @@
       "logoSizeError": "The logo must be smaller than 1 MB.",
       "nuiHelp": "9 digits, printed on every invoice.",
       "reviewUrl": "Google review link",
-      "reviewUrlHelp": "Sent to customers 2 hours after delivery. Leave empty to send nothing."
+      "reviewUrlHelp": "Sent to customers 2 hours after delivery. Leave empty to send nothing.",
+      "retentionGps": "Truck GPS routes"
     },
     "audit": {
       "title": "Audit log",
@@ -929,6 +931,21 @@
       "monthlyEmpty": "No orders to invoice for this month.",
       "recentOrders": "Recent orders",
       "noOrders": "No orders yet."
+    },
+    "liveMap": {
+      "title": "Live map",
+      "legend": "Orange: trucks (pale when not seen for 10 minutes). Blue A: pickup. Green B: drop-off. The page refreshes every 15 seconds.",
+      "onTheRoad": "On the road",
+      "none": "No truck is on a job right now.",
+      "seen": "Seen {ago}",
+      "stale": "Last seen {ago}",
+      "distance": "{km} km to go",
+      "eta": "about {min} min",
+      "noPosition": "No position yet: the driver's phone has not sent one.",
+      "openMap": "Open in Google Maps",
+      "callDriver": "Call driver",
+      "routeDriven": "Route driven",
+      "lastPosition": "Last position {ago} ({time})"
     }
   },
   "Pages": {
@@ -1085,6 +1102,12 @@
       "storage_unavailable": "Photo storage is not available. Call the office.",
       "rate_limited": "Too many uploads. Wait a moment.",
       "forbidden": "Not allowed."
+    },
+    "gps": {
+      "starting": "Turning on location…",
+      "sharing": "Location shared with the office and the customer while this job is under way. Keep the screen on.",
+      "denied": "Location is blocked. Allow it for this site in the phone's settings so the office can see the truck.",
+      "unavailable": "No GPS signal right now. Keep the screen on; it will retry."
     }
   },
   "Track": {
@@ -1141,7 +1164,15 @@
       "rate_limited": "Too many tries. Please wait a few minutes."
     },
     "paidThanks": "Thank you, we received your payment.",
-    "paidPending": "Thank you. We are confirming your payment; this page updates in a moment."
+    "paidPending": "Thank you. We are confirming your payment; this page updates in a moment.",
+    "truckNow": "Where the truck is now",
+    "truckToYou": "About {km} km away, there in about {min} min",
+    "truckToDropoff": "About {km} km to the destination, about {min} min",
+    "truckHere": "The truck is at the pickup address",
+    "truckAtDropoff": "The truck is at the destination",
+    "truckUpdated": "Position {ago}",
+    "etaRough": "time is a rough estimate",
+    "openMap": "Open in Google Maps"
   },
   "Portal": {
     "nav": {

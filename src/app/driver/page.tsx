@@ -3,6 +3,8 @@ import { ChevronRight, MapPin, Siren } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { requireDriver } from "@/server/auth/guard";
 import { driverForUser, driverJobs } from "@/server/driver/jobs";
+import { LocationSharing } from "@/components/driver/location-sharing";
+import { MOVING_STATUSES } from "@/lib/geo";
 import { DriverHeader } from "@/components/driver/header";
 import { StatusBadge, fmtDateTime } from "@/components/admin/ui";
 import { cn } from "@/lib/utils";
@@ -22,11 +24,13 @@ export default async function DriverHome() {
     );
   }
   const { todo, done } = await driverJobs(driver.id);
+  const moving = todo.some((a) => (MOVING_STATUSES as readonly string[]).includes(a.order.status));
 
   return (
     <>
       <DriverHeader name={driver.user.name} />
       <main className="mx-auto max-w-2xl space-y-6 p-3 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+        {moving && <LocationSharing />}
         <section aria-labelledby="todo">
           <h2 id="todo" className="mb-2 px-1 text-xl font-extrabold">{t("todo")} ({todo.length})</h2>
           {todo.length === 0 ? (

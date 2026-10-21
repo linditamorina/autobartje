@@ -231,6 +231,7 @@ Wir verkaufen Ihre Daten nicht.
 
 - Angebote ohne Buchung: {{retention.draftsDays}} Tage
 - Inspektionsfotos: {{retention.inspectionPhotosDays}} Tage
+- Die GPS-Route unseres Fahrzeugs für Ihren Auftrag: {{retention.gpsDays}} Tage
 - Andere Auftragsdokumente: {{retention.documentsDays}} Tage
 - Rechnungen: so lange, wie das Steuerrecht es verlangt
 

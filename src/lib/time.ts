@@ -61,3 +61,9 @@ export function roundedNow(minutes = 15): Date {
   const step = minutes * 60_000;
   return new Date(Math.ceil(Date.now() / step) * step);
 }
+
+/** "2 min ago" / "just now" in the given language, for live positions. */
+export function minutesAgo(d: Date, locale: string, now = Date.now()): string {
+  const min = Math.max(0, Math.round((now - d.getTime()) / 60_000));
+  return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(-min, "minute");
+}

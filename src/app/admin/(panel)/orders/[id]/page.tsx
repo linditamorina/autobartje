@@ -8,7 +8,7 @@ import { can } from "@/server/auth/permissions";
 import { allowedTransitions } from "@/server/orders/status";
 import { presignDownload, storageConfigured } from "@/server/files/storage";
 import { formatEur } from "@/lib/money";
-import { telHref, whatsappHref } from "@/lib/contact";
+import { mapsLink, telHref, whatsappHref } from "@/lib/contact";
 import { Panel, StatusBadge, UrgentBadge, fmtDateTime } from "@/components/admin/ui";
 import { NoteForm, PriceForm, StatusButtons } from "@/components/admin/order-forms";
 import { AssignForm } from "@/components/admin/assign-form";
@@ -18,8 +18,10 @@ import { createFromOrderAction } from "@/app/admin/(panel)/invoices/actions";
 import { assignChoices } from "@/server/dispatch/queries";
 import { defaultDurationMin } from "@/server/dispatch/conflicts";
 import { isOpen } from "@/server/orders/status";
-import { roundedNow, toBusinessLocal } from "@/lib/time";
+import { minutesAgo, roundedNow, toBusinessLocal } from "@/lib/time";
 import { trackUrl } from "@/lib/tracking";
+import { orderTrail } from "@/server/driver/location";
+import { LiveMap, type MapPoint } from "@/components/shared/live-map";
 
 export default async function OrderDetailPage({ params, searchParams }: PageProps<"/admin/orders/[id]">) {
   const user = await requireStaff("orders.read");
@@ -52,6 +54,14 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
   const td = await getTranslations("Admin.dispatch");
   const ti = await getTranslations("Admin.invoices");
   const tdr = await getTranslations("Driver");
+  const tm = await getTranslations("Admin.liveMap");
+  const trail = await orderTrail(order.id);
+  const lastPoint = trail.at(-1);
+  const mapPoints: MapPoint[] = [
+    ...(order.pickupLat != null && order.pickupLng != null ? [{ id: "pickup", kind: "pickup" as const, lat: order.pickupLat, lng: order.pickupLng, title: order.pickupAddress }] : []),
+    ...(order.dropoffLat != null && order.dropoffLng != null && order.dropoffAddress ? [{ id: "dropoff", kind: "dropoff" as const, lat: order.dropoffLat, lng: order.dropoffLng, title: order.dropoffAddress }] : []),
+    ...(lastPoint ? [{ id: "truck", kind: "truck" as const, lat: lastPoint.lat, lng: lastPoint.lng, title: fmtDateTime(lastPoint.at, locale) }] : []),
+  ];
   const sp = await searchParams;
   const invoiceError = typeof sp.invoiceError === "string" && ["no_price", "exists", "not_found"].includes(sp.invoiceError) ? sp.invoiceError : null;
   const actorIds = [...new Set([...order.statusEvents.map((e) => e.actorId), ...order.payments.map((p) => p.receivedById)].filter(Boolean))] as string[];
@@ -134,6 +144,16 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
               </div>
             </dl>
           </Panel>
+
+          {lastPoint && (
+            <Panel title={tm("routeDriven")}>
+              <LiveMap points={mapPoints} trail={trail} language={locale} />
+              <p className="mt-2 text-sm" data-testid="last-position">
+                {tm("lastPosition", { ago: minutesAgo(lastPoint.at, locale), time: fmtDateTime(lastPoint.at, locale) })} ·{" "}
+                <a href={mapsLink(lastPoint.lat, lastPoint.lng)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{tm("openMap")}</a>
+              </p>
+            </Panel>
+          )}
 
           {photos.length > 0 && (
             <Panel title={t("photos")}>

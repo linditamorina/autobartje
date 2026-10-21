@@ -21,7 +21,7 @@ const TEXT_KEYS = [
 ] as const satisfies readonly SettingKey[];
 const INT_KEYS = [
   "invoice.paymentTermsDays",
-  "retention.inspectionPhotosDays", "retention.documentsDays", "retention.draftsDays",
+  "retention.inspectionPhotosDays", "retention.documentsDays", "retention.draftsDays", "retention.gpsDays",
   "stats.yearsInBusiness", "stats.vehiclesMoved", "stats.avgArrivalMinutes",
 ] as const satisfies readonly SettingKey[];
 

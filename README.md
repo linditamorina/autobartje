@@ -99,6 +99,14 @@ past the retention periods set in Settings.
 - Customers without the link can open `/track` and enter the order number and the phone they booked with (rate limited per address and per order number).
 - The page shows the steps with times, the planned time, route, the driver's first name and truck, and the price. It refreshes itself every 20 seconds while open and the order is in progress. It never shows notes, staff or vehicle details, is not indexed, and stops showing details 30 days after the order is finished or as soon as the customer's data is anonymised.
 
+## Live GPS
+
+- While one of a driver's jobs is under way (driving to the pickup, loading, driving to the drop-off), the driver app sends the phone's position every 30 seconds or every 150 m, and keeps the screen on, because browsers pause GPS when the phone locks. A bar at the top shows whether sharing works; if the driver blocked location it says how to allow it. Nothing is recorded between jobs, and the server refuses points when no job is under way.
+- **Live map** (Admin → Live map, for dispatchers and up) lists every job on the road with its driver and truck, when the truck was last seen, the distance to its next stop and a rough arrival time. It refreshes every 15 seconds. Trucks not seen for 10 minutes are marked.
+- The customer's tracking page shows "About 9 km away, there in about 15 min" and the truck on a map while the truck is on the road for their order and its position is under 10 minutes old.
+- The admin order page keeps the route driven for each order. Points are deleted after "Truck GPS routes" days in Settings → Data retention (90 by default).
+- Maps need `NEXT_PUBLIC_GOOGLE_MAPS_KEY` (the same key as the address search). Without it the pages show the same facts as text with an "Open in Google Maps" link. Arrival times are estimated from the straight-line distance, not live traffic.
+
 ## Online payments (Stripe)
 
 - Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to turn them on. In the Stripe dashboard add a webhook to `https://<your domain>/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `charge.refunded`. Turn on the payment methods you want (cards, Apple Pay, Google Pay) under Settings → Payment methods.
@@ -139,4 +147,4 @@ pending migrations on start.
 
 1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
 2. **Done**: driver PWA with inspections, order tracking page, online payments (Stripe), B2B portal, WhatsApp Business API.
-3. Live GPS, advanced analytics, partner API.
+3. **In progress**: live GPS (done), advanced analytics, partner API.

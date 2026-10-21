@@ -53,6 +53,7 @@ export async function applyRetention() {
   const closed = { status: { in: ["COMPLETED", "CANCELLED"] as ("COMPLETED" | "CANCELLED")[] } };
 
   const quotes = await db.quote.deleteMany({ where: { orderId: null, createdAt: { lt: before(s["retention.draftsDays"]) } } });
+  const gps = await db.driverPosition.deleteMany({ where: { createdAt: { lt: before(s["retention.gpsDays"]) } } });
   const outbox = await db.notificationOutbox.deleteMany({ where: { status: { in: ["SENT", "SKIPPED", "FAILED"] }, createdAt: { lt: before(OUTBOX_KEEP_DAYS) } } });
 
   const docs = await db.document.findMany({
@@ -98,5 +99,5 @@ export async function applyRetention() {
     await db.inspection.delete({ where: { id: i.id } });
     files += keys.length;
   }
-  return { quotes: quotes.count, outbox: outbox.count, files };
+  return { quotes: quotes.count, outbox: outbox.count, gps: gps.count, files };
 }
