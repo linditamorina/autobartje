@@ -67,15 +67,15 @@ tests/e2e/         Playwright tests
 - **Privacy**: no analytics or marketing scripts load before cookie consent; "Reject" is as prominent as "Accept";
   each choice is logged in `Consent` with a truncated IP. Retention periods are settings.
 
-## Messages (SMS and email)
+## Messages (SMS, WhatsApp and email)
 
 Every customer, driver and office message is written to the `NotificationOutbox` table in the same
 transaction as the order change, then sent right after the response and by `/api/cron/notifications`
 every minute (Vercel Cron, see `vercel.json`; protect it with `CRON_SECRET`). Failed sends retry after
 1, 5, 15 and 60 minutes; the admin page **Messages** shows every message and can resend failed ones.
 Texts live in `src/server/notifications/templates.ts` (sq/en/de). SMS drop diacritics (ë→e, ç→c) so a
-message fits 160 characters instead of 70. WhatsApp customers get SMS until the WhatsApp Business API
-lands in phase 2. `/api/cron/daily` sends fleet paperwork reminders (30/7/1/0 days) and deletes data
+message fits 160 characters instead of 70. WhatsApp customers get WhatsApp messages once the
+WhatsApp Business API is set up (below), and SMS until then. `/api/cron/daily` sends fleet paperwork reminders (30/7/1/0 days) and deletes data
 past the retention periods set in Settings.
 
 ## Website content
@@ -114,6 +114,19 @@ past the retention periods set in Settings.
 - Companies with "One invoice per month" get one invoice for all orders delivered in a month: on the company page an accountant picks the month and creates a draft, with one line per order and the customer's reference, then issues it as usual.
 - Deactivating a company or a portal login signs those users out at once.
 
+## WhatsApp Business
+
+1. In Meta Business Manager create a WhatsApp Business account and a phone number, and a system user with a permanent token (`whatsapp_business_messaging`). Set `WHATSAPP_PROVIDER=meta`, `WHATSAPP_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID`.
+2. In WhatsApp Manager create one template named `order_update` (category Utility) in Albanian, English and German, each with two body variables:
+   - sq: `Përditësim për porosinë {{1}}: {{2}}`
+   - en: `Update on your order {{1}}: {{2}}`
+   - de: `Neuigkeit zu Ihrem Auftrag {{1}}: {{2}}`
+
+   `{{1}}` is the order number and `{{2}}` the same text the SMS would have. A different template name goes in `WHATSAPP_TEMPLATE`.
+3. In the Meta app add the webhook `https://<your domain>/api/whatsapp/webhook`, with the verify token from `WHATSAPP_VERIFY_TOKEN`, subscribe it to `messages`, and set `WHATSAPP_APP_SECRET` to the app secret.
+
+Customers who chose WhatsApp then get their messages there. If Meta answers that a number cannot get WhatsApp, the same text goes out by SMS at once; if it reports a failed delivery later through the webhook, an SMS is queued once. Customer replies on WhatsApp are not read by the app yet; answer them in the WhatsApp Business app.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
@@ -125,5 +138,5 @@ pending migrations on start.
 ## Phase plan
 
 1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
-2. Driver PWA with inspections, order tracking page, online payments, B2B portal.
+2. **Done**: driver PWA with inspections, order tracking page, online payments (Stripe), B2B portal, WhatsApp Business API.
 3. Live GPS, advanced analytics, partner API.

@@ -33,6 +33,9 @@ jobs:
       # Stripe test values: the e2e test signs webhooks itself; no real Stripe account is used
       STRIPE_SECRET_KEY: sk_test_ci_not_a_real_key
       STRIPE_WEBHOOK_SECRET: whsec_ci_only_not_a_real_secret
+      # WhatsApp webhook test values (sending stays on SMS without WHATSAPP_PROVIDER=meta)
+      WHATSAPP_APP_SECRET: ci-only-whatsapp-app-secret
+      WHATSAPP_VERIFY_TOKEN: ci-only-verify-token
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

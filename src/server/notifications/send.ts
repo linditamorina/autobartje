@@ -7,6 +7,7 @@ import type { NotificationEvent } from "./events";
 import { ProviderNotConfigured, sendEmail, sendSms } from "./providers";
 import { emailHtml, renderMessage, toGsm, type RenderContext } from "./templates";
 import { MAX_ATTEMPTS, retryDelayMin } from "./retry";
+import { sendWhatsApp, WhatsAppRecipientError, whatsappEnabled } from "./whatsapp";
 import { invoiceDoc } from "@/server/invoicing/manage";
 import { renderInvoicePdf } from "@/server/invoicing/pdf";
 
@@ -15,6 +16,16 @@ async function attachmentsFor(event: string, payload: Record<string, unknown>) {
   if (event !== "invoice_issued" || typeof payload.invoiceId !== "string") return undefined;
   const doc = await invoiceDoc(payload.invoiceId);
   return doc ? [{ filename: `${doc.number}.pdf`, content: await renderInvoicePdf(doc) }] : undefined;
+}
+
+/** WhatsApp when the customer has it; numbers without WhatsApp get the same text by SMS straight away. */
+async function sendWhatsAppOrSms(to: string, payload: Record<string, unknown>, text: string): Promise<string> {
+  try {
+    return await sendWhatsApp({ to, locale: String(payload.locale ?? "sq"), orderNumber: String(payload.orderNumber ?? payload.invoiceNumber ?? "-"), text });
+  } catch (err) {
+    if (!(err instanceof WhatsAppRecipientError)) throw err;
+    return `sms:${await sendSms({ to, text: toGsm(text) })}`;
+  }
 }
 
 /** While a row is being sent it is leased: another worker skips it until the lease runs out. */
@@ -55,17 +66,13 @@ export async function processOutbox(limit = 25): Promise<{ sent: number; failed:
       continue;
     }
     try {
-      // WhatsApp Business API arrives in phase 2; until then WhatsApp customers get an SMS.
+      const payload = (row.payload ?? {}) as Record<string, unknown>;
       const providerId =
         row.channel === "EMAIL"
-          ? await sendEmail({
-              to: row.to,
-              subject: rendered.subject,
-              text: rendered.text,
-              html: emailHtml(rendered, ctx),
-              attachments: await attachmentsFor(row.event, (row.payload ?? {}) as Record<string, unknown>),
-            })
-          : await sendSms({ to: row.to, text: toGsm(rendered.text) });
+          ? await sendEmail({ to: row.to, subject: rendered.subject, text: rendered.text, html: emailHtml(rendered, ctx), attachments: await attachmentsFor(row.event, payload) })
+          : row.channel === "WHATSAPP" && whatsappEnabled()
+            ? await sendWhatsAppOrSms(row.to, payload, rendered.text)
+            : await sendSms({ to: row.to, text: toGsm(rendered.text) });
       await db.notificationOutbox.update({ where: { id: row.id }, data: { status: "SENT", sentAt: new Date(), providerId, lastError: null } });
       result.sent++;
     } catch (err) {
@@ -82,4 +89,17 @@ export async function processOutbox(limit = 25): Promise<{ sent: number; failed:
     }
   }
   return result;
+}
+
+/**
+ * A WhatsApp message that Meta later reports as undeliverable (often the number
+ * has no WhatsApp) is sent again by SMS, once.
+ */
+export async function whatsappFailed(providerId: string, reason: string) {
+  await db.$transaction(async (tx) => {
+    const row = await tx.notificationOutbox.findFirst({ where: { providerId, channel: "WHATSAPP" } });
+    if (!row || row.status === "FAILED") return;
+    await tx.notificationOutbox.update({ where: { id: row.id }, data: { status: "FAILED", lastError: `WhatsApp: ${reason}`.slice(0, 500) } });
+    await tx.notificationOutbox.create({ data: { event: row.event, channel: "SMS", to: row.to, payload: row.payload ?? {}, orderId: row.orderId } });
+  });
 }

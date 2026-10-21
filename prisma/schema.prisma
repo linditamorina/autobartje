@@ -835,6 +835,7 @@ model NotificationOutbox {
   createdAt   DateTime           @default(now())
 
   @@index([status, sendAfter])
+  @@index([providerId])
 }
 
 // ───────────────────────────── CMS & settings ─────────────────────────────
