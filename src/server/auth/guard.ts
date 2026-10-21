@@ -28,3 +28,14 @@ export async function assertStaff(permission?: Permission) {
   if (permission && !can(user.permissions, permission)) throw new ForbiddenError(permission);
   return user;
 }
+
+/** For driver app pages: a signed-in user with a driver profile. */
+export async function requireDriver() {
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) redirect("/admin/login");
+  if (user.mfa === "pending") redirect("/admin/2fa");
+  if (user.mfa === "setup") redirect("/admin/2fa/setup");
+  if (!can(user.permissions, "driver.jobs")) redirect("/admin");
+  return user;
+}

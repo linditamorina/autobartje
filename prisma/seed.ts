@@ -162,6 +162,13 @@ async function main() {
       });
     }
     await db.counter.upsert({ where: { key: `order:${new Date().getFullYear()}` }, update: {}, create: { key: `order:${new Date().getFullYear()}`, value: statuses.length } });
+
+    // The confirmed order is Arben's next job, so the driver app has something to show.
+    const confirmed = await db.order.findFirstOrThrow({ where: { customerId: customer.id, status: "CONFIRMED" } });
+    const arben = await db.driver.findFirstOrThrow({ where: { user: { email: "arben@example.com" } } });
+    const truck = await db.truck.findUniqueOrThrow({ where: { plate: "03-123-AB" } });
+    const start = new Date(Date.now() + 3600_000);
+    await db.assignment.create({ data: { orderId: confirmed.id, driverId: arben.id, truckId: truck.id, plannedStart: start, plannedEnd: new Date(start.getTime() + 2 * 3600_000) } });
   }
 }
 

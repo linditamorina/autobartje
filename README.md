@@ -85,6 +85,14 @@ past the retention periods set in Settings.
 - The legal texts are a starting point and should be checked by a lawyer before launch.
 - `sitemap.xml` lists every page in every language with hreflang alternates, plus city pages and published articles. Pages carry breadcrumb, service and FAQ structured data.
 
+## Driver app
+
+- Drivers log in at `/admin/login` with their own account (role Driver) and land on `/driver`, a phone app they can add to the home screen. It lists today's jobs (urgent first) and the ones finished today. Demo login after seeding: `arben@example.com` / `driver-demo-password`.
+- A job shows one big button for the next step: start driving → vehicle loaded → on the way → delivered (roadside help: start → arrived → done). Every step updates the order and messages the customer, and records the phone's position when the driver allows it.
+- Loading needs the pickup inspection: photos from the front, rear and both sides (odometer, interior and damage are optional), odometer and fuel. Delivery needs the same photos plus the customer's name and finger signature. Photos are shrunk on the phone, stored privately with a SHA-256 checksum, and shown only to the office and the assigned driver. The office sees both inspections and the signature on the order page.
+- Cash the driver takes is recorded on the job and matched to the invoice when the office issues it.
+- Without R2, private files are written to `LOCAL_STORAGE_DIR` (or `.storage` in development). Set R2 or a persistent `LOCAL_STORAGE_DIR` in production; the photo upload refuses to work without either. Photos and signatures of closed orders are deleted after "Inspection photos" days in Settings → Data retention.
+
 ## Deployment
 
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon

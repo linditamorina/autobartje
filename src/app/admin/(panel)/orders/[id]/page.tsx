@@ -33,6 +33,8 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
       documents: { where: { type: "VEHICLE_PHOTO" } },
       assignments: { where: { isActive: true }, include: { driver: { include: { user: true } }, truck: true } },
       invoices: { where: { status: { not: "VOID" } }, select: { id: true, number: true, kind: true, status: true }, orderBy: { createdAt: "asc" } },
+      inspections: { include: { photos: { orderBy: { createdAt: "asc" } }, driver: { include: { user: { select: { name: true } } } } }, orderBy: { createdAt: "asc" } },
+      payments: { where: { status: "SUCCEEDED" }, orderBy: { createdAt: "asc" } },
     },
   });
   if (!order) notFound();
@@ -47,9 +49,10 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
   ]);
   const td = await getTranslations("Admin.dispatch");
   const ti = await getTranslations("Admin.invoices");
+  const tdr = await getTranslations("Driver");
   const sp = await searchParams;
   const invoiceError = typeof sp.invoiceError === "string" && ["no_price", "exists", "not_found"].includes(sp.invoiceError) ? sp.invoiceError : null;
-  const actorIds = [...new Set(order.statusEvents.map((e) => e.actorId).filter(Boolean))] as string[];
+  const actorIds = [...new Set([...order.statusEvents.map((e) => e.actorId), ...order.payments.map((p) => p.receivedById)].filter(Boolean))] as string[];
   const actors = new Map((await db.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
   const photos = storageConfigured() ? await Promise.all(order.documents.map(async (d) => ({ id: d.id, url: await presignDownload(d.objectKey) }))) : [];
   const canUpdate = can(user.permissions, "orders.update");
@@ -139,6 +142,42 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
             </Panel>
           )}
 
+          {order.inspections.length > 0 && (
+            <Panel title={tdr("inspections")}>
+              <div className="space-y-5">
+                {order.inspections.map((i) => (
+                  <section key={i.id} aria-label={tdr(i.kind === "PICKUP" ? "pickupInspection" : "deliveryInspection")}>
+                    <h3 className="font-bold">{tdr(i.kind === "PICKUP" ? "pickupInspection" : "deliveryInspection")}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {i.driver.user.name} · {fmtDateTime(i.signedAt ?? i.createdAt, locale)}
+                      {i.odometerKm != null && ` · ${i.odometerKm.toLocaleString(locale)} km`}
+                      {i.fuelLevel != null && ` · ${tdr("fuel")} ${i.fuelLevel} %`}
+                    </p>
+                    {i.notes && <p className="mt-1 whitespace-pre-wrap text-sm">{i.notes}</p>}
+                    <ul className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {i.photos.map((p) => (
+                        <li key={p.id}>
+                          <a href={`/api/files/inspection/${p.id}`} target="_blank" rel="noopener">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- private, auth-checked image route */}
+                            <img src={`/api/files/inspection/${p.id}`} alt={tdr(`angles.${p.angle}` as never)} loading="lazy" className="aspect-[4/3] w-full rounded-lg object-cover" />
+                          </a>
+                          <p className="text-xs text-muted-foreground">{tdr(`angles.${p.angle}` as never)} · {fmtDateTime(p.takenAt, locale)}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    {i.signedAt && i.signatureKey && (
+                      <figure className="mt-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- private, auth-checked image route */}
+                        <img src={`/api/files/inspection/sig-${i.id}`} alt={t("signature")} className="h-24 rounded-lg border border-border bg-white" />
+                        <figcaption className="text-sm">{t("signedBy", { name: i.signerName ?? "–", date: fmtDateTime(i.signedAt, locale) })}</figcaption>
+                      </figure>
+                    )}
+                  </section>
+                ))}
+              </div>
+            </Panel>
+          )}
+
           <Panel title={t("notes")}>
             <NoteForm orderId={order.id} />
             <ul className="mt-4 space-y-3">
@@ -158,6 +197,21 @@ export default async function OrderDetailPage({ params, searchParams }: PageProp
             {order.finalCents == null && order.estimatedCents != null && <p className="text-sm text-muted-foreground">{t("estimated")}</p>}
             {canUpdate && <div className="mt-3"><PriceForm orderId={order.id} defaultPrice={defaultPrice} /></div>}
           </Panel>
+          {order.payments.length > 0 && (
+            <Panel title={t("payments")}>
+              <ul className="space-y-1">
+                {order.payments.map((p) => (
+                  <li key={p.id} className="flex justify-between gap-2">
+                    <span>
+                      {ti.has(`methods.${p.method}`) ? ti(`methods.${p.method}` as never) : p.method}
+                      <span className="block text-xs text-muted-foreground">{(p.receivedById && actors.get(p.receivedById)) ?? "–"} · {fmtDateTime(p.receivedAt ?? p.createdAt, locale)}{!p.invoiceId && ` · ${t("notInvoiced")}`}</span>
+                    </span>
+                    <span className="font-semibold tabular-nums">{formatEur(p.amountCents, locale)}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
           {can(user.permissions, "invoices.read") && (
             <Panel title={ti("title")}>
               {order.invoices.length > 0 ? (

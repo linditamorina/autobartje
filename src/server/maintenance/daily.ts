@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/server/db";
 import { getSettings } from "@/server/settings";
 import { enqueueNotification } from "@/server/notifications/enqueue";
-import { deleteObject, storageConfigured } from "@/server/files/storage";
+import { deleteObject, privateStorageAvailable } from "@/server/files/storage";
 import { daysFromNow, startOfBusinessDay } from "@/lib/time";
 import { remindersDue, type ExpiryItem } from "./expiry";
 
@@ -69,7 +69,7 @@ export async function applyRetention() {
   let files = 0;
   for (const d of docs) {
     // Remove the file first; if storage fails the row stays and is retried tomorrow.
-    if (storageConfigured()) {
+    if (privateStorageAvailable()) {
       try {
         await deleteObject(d.objectKey);
       } catch (err) {
@@ -79,6 +79,24 @@ export async function applyRetention() {
     }
     await db.document.delete({ where: { id: d.id } });
     files++;
+  }
+
+  // Inspection photos and signatures of closed orders
+  const inspections = await db.inspection.findMany({
+    where: { OR: [{ purgeAfter: { lte: new Date(now) } }, { purgeAfter: null, createdAt: { lt: before(s["retention.inspectionPhotosDays"]) }, order: closed }] },
+    select: { id: true, signatureKey: true, photos: { select: { objectKey: true } } },
+    take: 200,
+  });
+  for (const i of inspections) {
+    const keys = [...i.photos.map((p) => p.objectKey), ...(i.signatureKey ? [i.signatureKey] : [])];
+    try {
+      if (privateStorageAvailable()) for (const k of keys) await deleteObject(k);
+    } catch (err) {
+      console.error("[retention] could not delete inspection files", i.id, err);
+      continue;
+    }
+    await db.inspection.delete({ where: { id: i.id } });
+    files += keys.length;
   }
   return { quotes: quotes.count, outbox: outbox.count, files };
 }

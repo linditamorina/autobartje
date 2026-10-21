@@ -128,6 +128,20 @@ export async function issueInvoice(id: string, actorId: string) {
       data: { number, year, sequence, status: "ISSUED", issueDate: now, dueDate: inv.kind === "CREDIT_NOTE" ? null : daysFromNow(terms, now), sellerSnapshot: seller },
     });
     await audit(tx, { actorId, action: "invoice.issued", entityType: "Invoice", entityId: id, after: { number, totalCents: inv.totalCents } });
+
+    // Cash the driver already collected for this order counts towards the invoice.
+    let paidCents = 0;
+    if (inv.kind === "INVOICE" && inv.orderId) {
+      const loose = await tx.payment.findMany({ where: { orderId: inv.orderId, invoiceId: null, status: "SUCCEEDED" }, orderBy: { createdAt: "asc" } });
+      for (const p of loose) {
+        if (paidCents + p.amountCents > inv.totalCents) continue;
+        await tx.payment.update({ where: { id: p.id }, data: { invoiceId: id } });
+        paidCents += p.amountCents;
+      }
+      if (paidCents > 0) {
+        Object.assign(updated, await tx.invoice.update({ where: { id }, data: { paidCents, status: paymentStatus(inv.totalCents, paidCents, updated.dueDate, now) } }));
+      }
+    }
     if (buyer.email) {
       await enqueueNotification(tx, {
         event: "invoice_issued",
