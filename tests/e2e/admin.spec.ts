@@ -201,9 +201,15 @@ test("owner adds a dispatcher account", async () => {
   await expect(page.getByText(email)).toBeVisible();
 });
 
+test("messages page shows the confirmation sent to the customer", async () => {
+  await page.goto("/admin/messages?status=SENT");
+  await expect(page.getByRole("heading", { name: "Messages" })).toBeVisible();
+  await expect(page.getByText("Order confirmed").first()).toBeVisible();
+});
+
 test("admin pages fit a 360px phone", async () => {
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/users", "/admin/settings", "/admin/audit"]) {
+  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/users", "/admin/messages", "/admin/settings", "/admin/audit"]) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} scrolls sideways`).toBeLessThanOrEqual(0);

@@ -249,7 +249,8 @@
       "logout": "Log out",
       "menu": "Menu",
       "viewSite": "View website",
-      "reports": "Reports"
+      "reports": "Reports",
+      "messages": "Messages"
     },
     "login": {
       "title": "Staff login",
@@ -428,7 +429,9 @@
       "storageMissing": "File storage (R2) is not configured, so logos cannot be uploaded yet.",
       "logoTypeError": "Use a PNG, WebP or SVG file (SVG without scripts).",
       "logoSizeError": "The logo must be smaller than 1 MB.",
-      "nuiHelp": "9 digits, printed on every invoice."
+      "nuiHelp": "9 digits, printed on every invoice.",
+      "reviewUrl": "Google review link",
+      "reviewUrlHelp": "Sent to customers 2 hours after delivery. Leave empty to send nothing."
     },
     "audit": {
       "title": "Audit log",
@@ -675,6 +678,33 @@
         "last_owner": "There must be at least one active owner.",
         "not_found": "Account not found."
       }
+    },
+    "messages": {
+      "title": "Messages",
+      "intro": "SMS and emails sent to customers, drivers and the office. Failed messages can be sent again once the problem is fixed.",
+      "all": "All",
+      "status": {
+        "PENDING": "Waiting",
+        "SENT": "Sent",
+        "FAILED": "Failed",
+        "SKIPPED": "Not needed"
+      },
+      "events": {
+        "booking_received": "Request received",
+        "booking_confirmed": "Order confirmed",
+        "driver_assigned": "Job sent to driver",
+        "driver_en_route": "Driver on the way",
+        "picked_up": "Vehicle picked up",
+        "delivered": "Vehicle delivered",
+        "invoice_issued": "Invoice",
+        "payment_received": "Payment received",
+        "review_request": "Review request",
+        "admin_new_order": "New order alert",
+        "admin_fleet_expiry": "Fleet expiry reminder"
+      },
+      "retry": "Send again",
+      "empty": "No messages yet.",
+      "scheduled": "Goes out {time}"
     }
   }
 }

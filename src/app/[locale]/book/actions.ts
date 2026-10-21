@@ -7,6 +7,7 @@ import { createBooking } from "@/server/orders/create-booking";
 import { rateLimit } from "@/server/security/rate-limit";
 import { clientIp } from "@/server/security/request";
 import { verifyTurnstile } from "@/server/security/turnstile";
+import { kickOutbox } from "@/server/notifications/kick";
 
 export type BookingResponse =
   | { ok: true; orderNumber: string }
@@ -30,6 +31,7 @@ export async function submitBooking(raw: unknown): Promise<BookingResponse> {
   try {
     const userAgent = (await headers()).get("user-agent");
     const result = await createBooking(parsed.data, { ip: truncateIp(ip), userAgent });
+    kickOutbox();
     return { ok: true, orderNumber: result.orderNumber };
   } catch (err) {
     console.error("[booking]", err);

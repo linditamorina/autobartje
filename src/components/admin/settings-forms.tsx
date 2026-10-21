@@ -75,6 +75,7 @@ export function SettingsForm({ values }: { values: Settings }) {
       { key: "contact.phone", label: t("phone"), type: "tel" },
       { key: "contact.whatsapp", label: t("whatsapp"), type: "tel" },
       { key: "contact.email", label: t("email"), type: "email" },
+      { key: "review.url", label: t("reviewUrl"), help: t("reviewUrlHelp") },
     ] },
     { title: t("stats"), fields: [
       { key: "stats.yearsInBusiness", label: t("years"), type: "number" },

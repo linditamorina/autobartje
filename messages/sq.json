@@ -249,7 +249,8 @@
       "logout": "Dil",
       "menu": "Menyja",
       "viewSite": "Shiko faqen",
-      "reports": "Raportet"
+      "reports": "Raportet",
+      "messages": "Mesazhet"
     },
     "login": {
       "title": "Hyrja e stafit",
@@ -428,7 +429,9 @@
       "storageMissing": "Ruajtja e skedarëve (R2) nuk është konfiguruar, ndaj logoja ende nuk mund të ngarkohet.",
       "logoTypeError": "Përdorni skedar PNG, WebP ose SVG (SVG pa skripte).",
       "logoSizeError": "Logoja duhet të jetë më e vogël se 1 MB.",
-      "nuiHelp": "9 shifra, shfaqet në çdo faturë."
+      "nuiHelp": "9 shifra, shfaqet në çdo faturë.",
+      "reviewUrl": "Linku për vlerësim në Google",
+      "reviewUrlHelp": "U dërgohet klientëve 2 orë pas dorëzimit. Lëreni bosh që të mos dërgohet asgjë."
     },
     "audit": {
       "title": "Regjistri i ndryshimeve",
@@ -675,6 +678,33 @@
         "last_owner": "Duhet të ketë të paktën një pronar aktiv.",
         "not_found": "Llogaria nuk u gjet."
       }
+    },
+    "messages": {
+      "title": "Mesazhet",
+      "intro": "SMS dhe email-et që u dërgohen klientëve, shoferëve dhe zyrës. Mesazhet e dështuara mund të ridërgohen pasi të rregullohet problemi.",
+      "all": "Të gjitha",
+      "status": {
+        "PENDING": "Në pritje",
+        "SENT": "U dërgua",
+        "FAILED": "Dështoi",
+        "SKIPPED": "Nuk nevojitet"
+      },
+      "events": {
+        "booking_received": "Kërkesa u pranua",
+        "booking_confirmed": "Porosia u konfirmua",
+        "driver_assigned": "Punë për shoferin",
+        "driver_en_route": "Shoferi në rrugë",
+        "picked_up": "Automjeti u mor",
+        "delivered": "Automjeti u dorëzua",
+        "invoice_issued": "Faturë",
+        "payment_received": "Pagesa u pranua",
+        "review_request": "Kërkesë për vlerësim",
+        "admin_new_order": "Njoftim porosie të re",
+        "admin_fleet_expiry": "Kujtesë skadimi flote"
+      },
+      "retry": "Dërgo sërish",
+      "empty": "Ende asnjë mesazh.",
+      "scheduled": "Dërgohet {time}"
     }
   }
 }

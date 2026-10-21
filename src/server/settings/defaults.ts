@@ -22,6 +22,8 @@ export const settingsSchema = z.object({
   "contact.email": z.string(),
   "contact.lat": z.number(),
   "contact.lng": z.number(),
+  /** Google review link sent to customers after delivery; empty = no review request. */
+  "review.url": z.union([z.literal(""), z.url().startsWith("https://")]),
   "vat.rateBp": z.number().int().min(0).max(10_000),
   "invoice.series": z.string().regex(/^[A-Z]{1,5}$/),
   "invoice.paymentTermsDays": z.number().int().min(0).max(120),
@@ -52,6 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
   "contact.email": "info@example.com",
   "contact.lat": 42.6593,
   "contact.lng": 20.2887,
+  "review.url": "",
   "vat.rateBp": 1800,
   "invoice.series": "AB",
   "invoice.paymentTermsDays": 15,
