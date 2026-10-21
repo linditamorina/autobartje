@@ -5,12 +5,15 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+# Scripts run in the build stage, once the Prisma schema is present.
+RUN npm ci --ignore-scripts
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT=standalone
+# Placeholder so `prisma generate` can load prisma.config.ts; the real URL is passed at runtime.
+ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
 RUN npx prisma generate && npm run build
 
 FROM base AS runner
