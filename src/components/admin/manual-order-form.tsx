@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { createOrderAction, type ActionState } from "@/app/admin/(panel)/orders/actions";
 import { CHANNELS, SERVICES, VEHICLE_TYPES } from "@/lib/validation/booking";
 import { Panel } from "./ui";
+import { useKeepInputSubmit } from "./use-submit";
 
 const selectClass = "flex min-h-12 w-full rounded-lg border-2 border-input bg-background px-3 py-2 text-base";
 
@@ -39,9 +40,10 @@ export function ManualOrderForm() {
   // datetime-local has no zone; send the browser's (Kosovo) time as an ISO instant.
   const [requestedIso, setRequestedIso] = useState("");
   const [state, action, pending] = useActionState<ActionState, FormData>(createOrderAction, undefined);
+  const onSubmit = useKeepInputSubmit(action);
 
   return (
-    <form action={action} className="grid gap-4 lg:grid-cols-2">
+    <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
       <Panel title={t("routeSection")}>
         <div className="space-y-3">
           <Field label={tq("service")}>

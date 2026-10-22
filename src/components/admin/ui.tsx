@@ -50,3 +50,12 @@ export function fmtDate(d: Date | null | undefined, locale: string): string {
   if (!d) return "–";
   return new Intl.DateTimeFormat(locale, { timeZone: TZ, dateStyle: "medium" }).format(d);
 }
+
+export const INVOICE_STYLE: Record<string, string> = {
+  DRAFT: "bg-muted text-muted-foreground",
+  ISSUED: "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100",
+  PARTIALLY_PAID: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
+  OVERDUE: "bg-red-100 text-red-900 dark:bg-red-900/40 dark:text-red-100",
+  PAID: "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-100",
+  VOID: "bg-zinc-200 text-zinc-800 line-through dark:bg-zinc-800 dark:text-zinc-200",
+};

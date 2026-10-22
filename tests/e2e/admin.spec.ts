@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { generate } from "otplib";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client";
@@ -16,11 +16,24 @@ async function resetOwner() {
   await db.$disconnect();
 }
 
-test("owner logs in, sets up 2FA, takes a phone order and edits the brand", async ({ page, context, baseURL }, info) => {
-  // One owner account and TOTP codes that cannot be replayed: run once, on desktop.
-  test.skip(info.project.name !== "desktop", "admin flow runs once, on desktop");
-  await resetOwner();
-  await context.addCookies([{ name: "ab_admin_locale", value: "en", url: baseURL! }]);
+// One owner account and TOTP codes that cannot be replayed: run once, on desktop, in one browser session.
+test.describe.serial("admin", () => {
+  let page: Page;
+  let confirmedOrderUrl = "";
+
+  test.beforeAll(async ({ browser, baseURL }, info) => {
+    test.skip(info.project.name !== "desktop", "admin flow runs once, on desktop");
+    await resetOwner();
+    const context = await browser.newContext({ baseURL });
+    await context.addCookies([{ name: "ab_admin_locale", value: "en", url: baseURL! }]);
+    page = await context.newPage();
+  });
+
+  test.afterAll(async () => {
+    await page?.context().close();
+  });
+
+test("owner logs in, sets up 2FA, takes a phone order and edits the brand", async () => {
 
   // Protected pages send you to the login
   await page.goto("/admin/orders");
@@ -56,6 +69,7 @@ test("owner logs in, sets up 2FA, takes a phone order and edits the brand", asyn
   await statusPanel.getByLabel("Final price (EUR, incl. VAT)").fill("45");
   await statusPanel.getByRole("button", { name: "Move to: Confirmed" }).click();
   await expect(page.getByRole("button", { name: "Move to: Driver en route" })).toBeVisible();
+  confirmedOrderUrl = page.url();
 
   // Brand name is editable and shows on the public site
   const brand = `autobartje e2e ${Date.now() % 1000}`;
@@ -77,4 +91,225 @@ test("owner logs in, sets up 2FA, takes a phone order and edits the brand", asyn
   await page.getByLabel("Brand name").fill(original);
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByText("Settings saved.")).toBeVisible();
+});
+
+test("dispatcher view: add a truck, assign it with clash checks", async () => {
+  test.setTimeout(60_000);
+  // 1–2 years ahead (a different day each run): no demo jobs there and the demo driver's licence is still valid
+  const day = new Date(Date.now() + (400 + (Math.floor(Date.now() / 1000) % 300)) * 86_400_000).toISOString().slice(0, 10);
+  const start = `${day}T09:00`;
+  const plate = `E2E-${String(Date.now()).slice(-6)}`;
+
+  // New truck whose insurance runs out the day before the job
+  const dayBefore = new Date(Date.parse(`${day}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  await page.goto("/admin/fleet/trucks/new");
+  await page.getByLabel("Plate").fill(plate);
+  await page.getByLabel("Insurance valid until").fill(dayBefore);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/admin\/fleet$/);
+  await expect(page.getByRole("link", { name: plate.toUpperCase() })).toBeVisible();
+
+  // A fresh order to assign
+  await page.goto("/admin/orders/new");
+  await page.getByLabel("Pickup address").fill("Rruga e Prizrenit, Pejë");
+  await page.getByLabel("Customer name").fill("E2E Dispatch Customer");
+  await page.getByLabel("Phone", { exact: true }).fill(`+38345${String(Date.now()).slice(-6)}`);
+  await page.getByRole("button", { name: "Create order" }).click();
+  await expect(page.getByRole("heading", { name: /^Order P-/ })).toBeVisible();
+  const orderUrl = page.url();
+
+  const assignPanel = page.locator("section", { has: page.getByRole("heading", { name: "Driver and truck" }) });
+  const fillAssign = async () => {
+    await assignPanel.getByLabel("Driver").selectOption({ label: "Arben K." });
+    const truckValue = await assignPanel.getByLabel("Truck").locator("option", { hasText: plate }).getAttribute("value");
+    await assignPanel.getByLabel("Truck").selectOption(truckValue!);
+    await assignPanel.getByLabel("Start").fill(start);
+    await assignPanel.getByLabel("Duration (minutes)").fill("120");
+    await assignPanel.getByRole("button", { name: "Assign", exact: true }).click();
+  };
+  await expect(assignPanel.getByText("No driver assigned yet.")).toBeVisible();
+  await fillAssign();
+  // Blocked, and the form keeps what was typed
+  await expect(assignPanel.getByText(/insurance expires before the job ends/)).toBeVisible();
+  await expect(assignPanel.getByLabel("Start")).toHaveValue(start);
+
+  // Renew the insurance in Fleet, then assign again
+  await page.goto("/admin/fleet");
+  await page.getByRole("link", { name: plate }).click();
+  await page.getByLabel("Insurance valid until").fill(`${Number(day.slice(0, 4)) + 1}-12-31`);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/admin\/fleet$/);
+
+  await page.goto(orderUrl);
+  await fillAssign();
+  await expect(assignPanel.getByText("Assigned. The driver gets an SMS.")).toBeVisible();
+  await page.reload();
+  await expect(assignPanel.getByText("Arben K.").first()).toBeVisible();
+
+  // The dispatch board shows it on that day
+  await page.goto(`/admin/dispatch?date=${day}`);
+  await expect(page.getByText(plate, { exact: true })).toBeVisible();
+  await expect(page.getByTitle(/Arben K\./).first()).toBeVisible();
+});
+
+test("owner edits a price and checks it in the price tester", async () => {
+  await page.goto("/admin/pricing?tab=test");
+  await page.getByLabel("Service").selectOption({ label: "Towing" });
+  await page.getByLabel("Distance (km)").fill("10");
+  await page.getByLabel("Pickup time (empty = now)").fill("2030-03-06T10:00"); // a Wednesday, daytime
+  await page.getByRole("button", { name: "Calculate" }).click();
+  await expect(page.getByTestId("sim-result")).toContainText("Total");
+  const before = await page.getByTestId("sim-result").locator("tr").last().textContent();
+
+  await page.goto("/admin/pricing?tab=rules");
+  const row = page.locator("form", { has: page.locator('input[name="name"][value="Emergency call-out"]') });
+  const amount = row.locator('input[name="amount"]');
+  const original = await amount.inputValue();
+  await amount.fill(String(Number(original) + 10));
+  await row.getByRole("button", { name: "Save" }).click();
+  await expect(row.getByText("Saved.")).toBeVisible();
+
+  await page.goto("/admin/pricing?tab=test");
+  await page.getByLabel("Service").selectOption({ label: "Towing" });
+  await page.getByLabel("Distance (km)").fill("10");
+  await page.getByLabel("Pickup time (empty = now)").fill("2030-03-06T10:00");
+  await page.getByRole("button", { name: "Calculate" }).click();
+  await expect(page.getByTestId("sim-result").locator("tr").last()).not.toHaveText(before!);
+
+  // Put the price back
+  await page.goto("/admin/pricing?tab=rules");
+  await row.locator('input[name="amount"]').fill(original);
+  await row.getByRole("button", { name: "Save" }).click();
+  await expect(row.getByText("Saved.")).toBeVisible();
+});
+
+test("owner adds a dispatcher account", async () => {
+  const email = `dispatcher-${Date.now()}@example.com`;
+  await page.goto("/admin");
+  await page.getByRole("link", { name: "Users" }).first().click();
+  await expect(page.getByRole("heading", { name: "Staff accounts" })).toBeVisible();
+  await page.goto("/admin/users/new");
+  await page.getByLabel("Full name").fill("E2E Dispatcher");
+  await page.getByLabel("Email (login)").fill(email);
+  await page.getByLabel("Role").selectOption("DISPATCHER");
+  await page.getByLabel("Starting password").fill("short");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Please check the highlighted fields.")).toBeVisible();
+  await expect(page.getByLabel("Email (login)")).toHaveValue(email);
+  await page.getByLabel("Starting password").fill("dispatcher-password-123");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByRole("heading", { name: "E2E Dispatcher" })).toBeVisible();
+  await page.goto("/admin/users");
+  await expect(page.getByText(email)).toBeVisible();
+});
+
+test("messages page shows the confirmation sent to the customer", async () => {
+  await page.goto("/admin/messages?status=SENT");
+  await expect(page.getByRole("heading", { name: "Messages" })).toBeVisible();
+  await expect(page.getByText("Order confirmed").first()).toBeVisible();
+});
+
+test("accountant flow: invoice the confirmed order, download the PDF, record payment", async () => {
+  await page.goto(confirmedOrderUrl);
+  await page.getByRole("button", { name: "Create invoice" }).click();
+  await expect(page.getByRole("heading", { name: "Draft invoice" })).toBeVisible();
+  // Quoted €45 incl. VAT is invoiced as exactly €45.00 (€38.14 net + €6.86 VAT)
+  await expect(page.getByTestId("draft-totals")).toContainText("45.00");
+
+  // Business buyer with NUI; an invalid NUI is rejected and the input kept
+  await page.getByLabel("Name / company").fill("E2E Auto SH.P.K.");
+  await page.getByLabel("NUI (businesses, 9 digits)").fill("12345");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Please check the highlighted fields.")).toBeVisible();
+  await page.getByLabel("NUI (businesses, 9 digits)").fill("811111111");
+  await page.getByLabel("Email (invoice is sent here)").fill("e2e-buyer@example.com");
+  await page.getByRole("button", { name: "Add line" }).click();
+  await page.locator('input[name="line1.description"]').fill("Pritje");
+  await page.locator('input[name="line1.quantity"]').fill("2");
+  await page.locator('input[name="line1.unitPrice"]').fill("10");
+  await expect(page.getByTestId("draft-totals")).toContainText("65.00");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Issue invoice" }).click();
+  await expect(page.getByRole("heading", { name: /^Invoice AB-\d{4}-\d{5}$/ })).toBeVisible();
+  await expect(page.getByTestId("invoice-total")).toHaveText(/65\.00/);
+
+  const pdf = await page.request.get(await page.getByRole("link", { name: "PDF" }).getAttribute("href") as string);
+  expect(pdf.headers()["content-type"]).toBe("application/pdf");
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+
+  // Overpaying is refused; paying the rest marks it paid
+  await page.getByLabel("Amount (€)").fill("100");
+  await page.getByRole("button", { name: "Record payment" }).click();
+  await expect(page.getByText("The amount is more than what's still due.")).toBeVisible();
+  await page.getByLabel("Amount (€)").fill("65.00");
+  await page.getByRole("button", { name: "Record payment" }).click();
+  await expect(page.getByText("Paid", { exact: true })).toBeVisible();
+
+  // Export for the accountant
+  const xlsx = await page.request.get(`/api/admin/invoices/export?from=2020-01-01&to=2099-12-31&format=xlsx`);
+  expect(xlsx.headers()["content-type"]).toContain("spreadsheetml");
+  const csv = await (await page.request.get(`/api/admin/invoices/export?from=2020-01-01&to=2099-12-31&format=csv`)).text();
+  expect(csv).toContain("E2E Auto SH.P.K.;811111111");
+});
+
+test("editor changes a page, adds a FAQ answer and publishes an article", async () => {
+  const stamp = Date.now().toString(36);
+
+  // Edit the English About page, then put the original text back
+  await page.goto("/admin/content");
+  await page.getByRole("row", { name: /About us/ }).getByRole("link").nth(1).click();
+  await expect(page).toHaveURL(/slug=about&locale=en/);
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill(`About the crew ${stamp}`);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved.")).toBeVisible();
+  await page.goto("/en/about");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(`About the crew ${stamp}`);
+
+  await page.goto("/admin/content/edit?slug=about&locale=en");
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Reset to original text" }).click();
+  await expect(page.getByText("The original text is shown again.")).toBeVisible();
+  await page.goto("/en/about");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("About us");
+
+  // FAQ answer in English shows on the public page
+  await page.goto("/admin/content?tab=faq&lang=en");
+  const add = page.getByRole("region", { name: "Add a question" }).or(page.locator("section", { has: page.getByRole("heading", { name: "Add a question" }) }));
+  await add.getByLabel("Question").fill(`Do you tow motorbikes ${stamp}?`);
+  await add.getByLabel("Answer").fill(`Yes, on a flatbed with straps (${stamp}).`);
+  await add.getByRole("button", { name: "Add" }).click();
+  await expect(add.getByText("Saved.")).toBeVisible();
+  await page.goto("/en/faq");
+  await page.getByText(`Do you tow motorbikes ${stamp}?`).click();
+  await expect(page.getByText(`Yes, on a flatbed with straps (${stamp}).`)).toBeVisible();
+
+  // Article: a draft stays hidden until it gets a publish time
+  await page.goto("/admin/content/blog/new");
+  await page.getByRole("textbox", { name: "Title", exact: true }).fill(`Winter towing tips ${stamp}`);
+  await page.getByLabel("Web address").fill(`winter-tips-${stamp}`);
+  await page.getByRole("main").getByLabel("Language").selectOption("en");
+  await page.getByLabel("Text (Markdown)").fill("## Before you drive\n\n- Check the battery\n- Carry a blanket");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/admin\/content\/blog\/\w+\?saved=1/);
+  expect((await page.request.get(`/en/blog/winter-tips-${stamp}`)).status()).toBe(404);
+
+  await page.getByLabel("Publish at").fill("2020-01-01T09:00");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Saved.").first()).toBeVisible();
+  await page.goto(`/en/blog/winter-tips-${stamp}`);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(`Winter towing tips ${stamp}`);
+  await expect(page.getByRole("heading", { name: "Before you drive" })).toBeVisible();
+});
+
+test("admin pages fit a 360px phone", async () => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  for (const path of ["/admin", "/admin/orders", "/admin/orders?view=board", "/admin/dispatch", "/admin/fleet", "/admin/pricing", "/admin/pricing?tab=routes", "/admin/invoices", "/admin/users", "/admin/messages", "/admin/content", "/admin/content?tab=faq", "/admin/content?tab=areas", "/admin/content/edit?slug=legal/privacy&locale=sq", "/admin/content/blog/new", "/admin/settings", "/admin/audit"]) {
+    await page.goto(path);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `${path} scrolls sideways`).toBeLessThanOrEqual(0);
+  }
+});
 });

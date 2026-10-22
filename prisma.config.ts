@@ -8,6 +8,7 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    // Migrations need a direct (session) connection; the app itself can use a pooled DATABASE_URL.
+    url: process.env.DIRECT_URL || env("DATABASE_URL"),
   },
 });

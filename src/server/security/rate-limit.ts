@@ -18,3 +18,9 @@ export function rateLimit(key: string, limit: number, windowMs: number): { ok: b
   w.count += 1;
   return { ok: w.count <= limit, retryAfterSec: Math.ceil((w.resetAt - now) / 1000) };
 }
+
+/** Whether `key` already used up `limit` in its current window, without counting this check. */
+export function isLimited(key: string, limit: number): boolean {
+  const w = windows.get(key);
+  return !!w && w.resetAt > Date.now() && w.count >= limit;
+}
