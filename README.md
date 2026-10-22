@@ -157,6 +157,15 @@ Customers who chose WhatsApp then get their messages there. If Meta answers that
 **Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
 Postgres database in an EU region, and run `npx prisma migrate deploy` as part of the build command.
 
+**Supabase as the database:** the app talks to Postgres directly (Prisma), so it needs the database
+connection strings, not the Supabase API keys. In Supabase → Connect take the *Transaction pooler* URI (port 6543)
+for `DATABASE_URL` and the *Session pooler* URI (port 5432) for `DIRECT_URL`, each with the database password.
+For a new project, either run `npx prisma migrate deploy` with those set, or paste the output of
+`node scripts/setup-sql.mjs` into the SQL Editor (it also fills Prisma's migration history, so later deploys only
+add new migrations). Row level security is switched on for every table so Supabase's public Data API cannot read
+them; the app is unaffected. A table added by a later migration needs `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`
+in that migration. Pick an EU region for the project.
+
 **Docker:** `docker build -t autobartje .` then run with the same environment variables. The container applies
 pending migrations on start.
 
