@@ -1,20 +1,9 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 
-export type NotificationEvent =
-  | "booking_received"
-  | "booking_confirmed"
-  | "driver_assigned"
-  | "driver_en_route"
-  | "picked_up"
-  | "delivered"
-  | "invoice_issued"
-  | "payment_received"
-  | "review_request"
-  | "admin_new_order"
-  | "admin_fleet_expiry";
+import type { Channel, NotificationEvent } from "./events";
 
-export type Channel = "SMS" | "WHATSAPP" | "EMAIL" | "PHONE";
+export type { Channel, NotificationEvent };
 
 /**
  * Queues a message in the outbox, inside the caller's transaction, so it is sent

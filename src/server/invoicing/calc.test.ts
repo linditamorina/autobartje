@@ -70,3 +70,16 @@ describe("helpers", () => {
     expect(paymentStatus(8260, 8260, due, after)).toBe("PAID");
   });
 });
+
+describe("prices including VAT", () => {
+  it("keeps the agreed gross exactly and takes VAT out of it", () => {
+    for (const gross of [100, 999, 4500, 4720, 5900, 12345, 65000, 99999]) {
+      const t = calculateInvoice([{ description: "x", quantity: 1, unitPriceCents: gross }], { pricesIncludeVat: true });
+      expect(t.totalCents).toBe(gross);
+      expect(t.vatCents).toBe(gross - Math.round((gross * 10_000) / 11_800));
+    }
+    const t = calculateInvoice([{ description: "Tërheqje", quantity: 1, unitPriceCents: 4500 }], { pricesIncludeVat: true });
+    expect([t.subtotalCents, t.vatCents, t.totalCents]).toEqual([3814, 686, 4500]);
+  });
+});
+

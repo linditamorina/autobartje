@@ -15,7 +15,7 @@ import { CheckField, ChoiceGroup, TextField } from "./fields";
 import { PhotoUpload } from "./photo-upload";
 import { PriceBox } from "./price-box";
 import { QuoteFields, TimeFields, type DraftErrors } from "./quote-fields";
-import { Turnstile } from "./turnstile";
+import { Turnstile, turnstileEnabled } from "./turnstile";
 import { validateStep } from "./validate";
 
 const STEPS = ["service", "vehicle", "time", "contact", "summary"] as const;
@@ -28,7 +28,11 @@ export function BookingWizard({ vatRateBp }: { vatRateBp: number }) {
   const [draft, setDraft] = useState<Draft>(() => loadDraft() ?? emptyDraft());
   const [errors, setErrors] = useState<DraftErrors>({});
   const [quote, setQuote] = useState<QuoteResult | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  // A ref, not state: submit may need to wait for the bot check to finish.
+  const token = useRef<string | null>(null);
+  const onToken = useCallback((value: string | null) => {
+    token.current = value;
+  }, []);
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -84,11 +88,15 @@ export function BookingWizard({ vatRateBp }: { vatRateBp: number }) {
     setFailure(null);
     start(async () => {
       const source = new URLSearchParams(window.location.search).get("utm_source") ?? (document.referrer ? new URL(document.referrer).hostname : null);
-      const res = await submitBooking(toBookingInput(draft, locale, token, source));
+      // A fast customer can press send before the bot check has answered; give it up to 10 s.
+      for (let waited = 0; turnstileEnabled && !token.current && waited < 10_000; waited += 250) {
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      const res = await submitBooking(toBookingInput(draft, locale, token.current, source));
       if (res.ok) {
         trackEvent("booking_submitted", { service: draft.service, value: (quote?.totalCents ?? 0) / 100, currency: "EUR" });
         clearDraft();
-        router.push({ pathname: "/book/done", query: { order: res.orderNumber } });
+        router.push({ pathname: "/book/done", query: { order: res.orderNumber, t: res.trackingToken } });
         return;
       }
       setFailure(t(`errors.${res.error === "invalid" ? "server" : res.error}` as never));
@@ -165,7 +173,7 @@ export function BookingWizard({ vatRateBp }: { vatRateBp: number }) {
               </CheckField>
               <CheckField checked={draft.consents.marketing} onChange={(marketing) => update({ consents: { ...draft.consents, marketing } })} label={t("marketingConsent")} />
             </div>
-            <Turnstile onToken={setToken} language={locale} />
+            <Turnstile onToken={onToken} language={locale} />
           </div>
         )}
 

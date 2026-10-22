@@ -30,8 +30,13 @@ export async function SiteFooter({ settings }: { settings: Settings }) {
             <li><Link href="/services" className="underline-offset-4 hover:underline">{nav("services")}</Link></li>
             <li><Link href="/import-guide" className="underline-offset-4 hover:underline">{nav("import")}</Link></li>
             <li><Link href="/pricing" className="underline-offset-4 hover:underline">{nav("pricing")}</Link></li>
+            <li><Link href="/fleet" className="underline-offset-4 hover:underline">{nav("fleet")}</Link></li>
+            <li><Link href="/areas" className="underline-offset-4 hover:underline">{nav("areas")}</Link></li>
+            <li><Link href="/faq" className="underline-offset-4 hover:underline">{nav("faq")}</Link></li>
+            <li><Link href="/blog" className="underline-offset-4 hover:underline">{nav("blog")}</Link></li>
             <li><Link href="/about" className="underline-offset-4 hover:underline">{nav("about")}</Link></li>
             <li><Link href="/contact" className="underline-offset-4 hover:underline">{nav("contact")}</Link></li>
+            <li><Link href="/track" className="underline-offset-4 hover:underline">{nav("track")}</Link></li>
           </ul>
         </nav>
         <nav aria-label={t("legal")}>

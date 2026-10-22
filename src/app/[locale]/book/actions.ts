@@ -7,9 +7,10 @@ import { createBooking } from "@/server/orders/create-booking";
 import { rateLimit } from "@/server/security/rate-limit";
 import { clientIp } from "@/server/security/request";
 import { verifyTurnstile } from "@/server/security/turnstile";
+import { kickOutbox } from "@/server/notifications/kick";
 
 export type BookingResponse =
-  | { ok: true; orderNumber: string }
+  | { ok: true; orderNumber: string; trackingToken: string }
   | { ok: false; error: "invalid" | "bot" | "rate_limited" | "server"; issues?: { path: string; code: string }[] };
 
 export async function submitBooking(raw: unknown): Promise<BookingResponse> {
@@ -30,7 +31,8 @@ export async function submitBooking(raw: unknown): Promise<BookingResponse> {
   try {
     const userAgent = (await headers()).get("user-agent");
     const result = await createBooking(parsed.data, { ip: truncateIp(ip), userAgent });
-    return { ok: true, orderNumber: result.orderNumber };
+    kickOutbox();
+    return { ok: true, orderNumber: result.orderNumber, trackingToken: result.trackingToken };
   } catch (err) {
     console.error("[booking]", err);
     return { ok: false, error: "server" };

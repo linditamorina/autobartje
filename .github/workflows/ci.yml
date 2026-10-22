@@ -23,9 +23,21 @@ jobs:
       AUTH_SECRET: ci-only-secret-not-used-in-production-000000
       DATA_ENCRYPTION_KEY: Y2ktb25seS1rZXktMzItYnl0ZXMtbG9uZy0wMDAwMDA=
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      # Log SMS/email instead of sending them
+      NOTIFY_DRY_RUN: "1"
       # Cloudflare's documented always-pass test keys
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      # Private files (inspection photos) on disk instead of R2
+      LOCAL_STORAGE_DIR: /tmp/autobartje-files
+      # Stripe test values: the e2e test signs webhooks itself; no real Stripe account is used
+      STRIPE_SECRET_KEY: sk_test_ci_not_a_real_key
+      STRIPE_WEBHOOK_SECRET: whsec_ci_only_not_a_real_secret
+      # WhatsApp webhook test values (sending stays on SMS without WHATSAPP_PROVIDER=meta)
+      WHATSAPP_APP_SECRET: ci-only-whatsapp-app-secret
+      WHATSAPP_VERIFY_TOKEN: ci-only-verify-token
+      # Lets the partner API test send webhooks to a local receiver; never set in production
+      WEBHOOK_ALLOW_PRIVATE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
