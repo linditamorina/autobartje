@@ -71,7 +71,9 @@ tests/e2e/         Playwright tests
 
 Every customer, driver and office message is written to the `NotificationOutbox` table in the same
 transaction as the order change, then sent right after the response and by `/api/cron/notifications`
-every minute (Vercel Cron, see `vercel.json`; protect it with `CRON_SECRET`). Failed sends retry after
+every 5 minutes (the GitHub Actions workflow `cron.yml`, because Vercel's Hobby plan runs cron jobs only daily;
+it needs the repository secrets `SITE_URL` and `CRON_SECRET`; on Vercel Pro the schedule in `vercel.json` can be
+set to every minute instead). Protect the endpoint with `CRON_SECRET`. Failed sends retry after
 1, 5, 15 and 60 minutes; the admin page **Messages** shows every message and can resend failed ones.
 Texts live in `src/server/notifications/templates.ts` (sq/en/de). SMS drop diacritics (ë→e, ç→c) so a
 message fits 160 characters instead of 70. WhatsApp customers get WhatsApp messages once the
@@ -154,8 +156,10 @@ Customers who chose WhatsApp then get their messages there. If Meta answers that
 
 ## Deployment
 
-**Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
-Postgres database in an EU region, and run `npx prisma migrate deploy` as part of the build command.
+**Vercel (recommended):** import the repo and add the environment variables from `.env.example` before the
+first build (the build reads the database). `vercel.json` runs `prisma migrate deploy` before `next build`, so new
+migrations are applied on every deploy. `NEXT_PUBLIC_SITE_URL` is built into the pages: change it and redeploy when
+the domain changes. Without Resend/Infobip keys set `NOTIFY_DRY_RUN=1`, or every message is marked failed.
 
 **Supabase as the database:** the app talks to Postgres directly (Prisma), so it needs the database
 connection strings, not the Supabase API keys. In Supabase → Connect take the *Transaction pooler* URI (port 6543)
