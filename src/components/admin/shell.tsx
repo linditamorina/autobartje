@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, ExternalLink, FileText, Gauge, LogOut, Map, Receipt, ScrollText, Settings, Tags, Truck, Users } from "lucide-react";
+import { BarChart3, ClipboardList, ExternalLink, FileText, Gauge, LogOut, Map, Navigation, Receipt, ScrollText, Send, Settings, Tags, Truck, UserCog, Users } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { signOut } from "@/server/auth/config";
@@ -14,18 +14,21 @@ const NAV: { href: string; key: string; icon: typeof Gauge; permission?: Permiss
   { href: "/admin", key: "dashboard", icon: Gauge },
   { href: "/admin/orders", key: "orders", icon: ClipboardList, permission: "orders.read" },
   { href: "/admin/dispatch", key: "dispatch", icon: Map, permission: "dispatch.read" },
+  { href: "/admin/map", key: "liveMap", icon: Navigation, permission: "dispatch.read" },
   { href: "/admin/fleet", key: "fleet", icon: Truck, permission: "fleet.read" },
   { href: "/admin/pricing", key: "pricing", icon: Tags, permission: "pricing.read" },
   { href: "/admin/invoices", key: "invoices", icon: Receipt, permission: "invoices.read" },
   { href: "/admin/customers", key: "customers", icon: Users, permission: "customers.read" },
   { href: "/admin/reports", key: "reports", icon: BarChart3, permission: "reports.read" },
   { href: "/admin/content", key: "content", icon: FileText, permission: "cms.manage" },
+  { href: "/admin/users", key: "users", icon: UserCog, permission: "users.manage" },
+  { href: "/admin/messages", key: "messages", icon: Send, permission: "settings.manage" },
   { href: "/admin/settings", key: "settings", icon: Settings, permission: "settings.manage" },
   { href: "/admin/audit", key: "audit", icon: ScrollText, permission: "audit.read" },
 ];
 
 /** Pages that exist in this release; the rest appear as their PRs land. */
-const LIVE = new Set(["dashboard", "orders", "settings", "audit"]);
+const LIVE = new Set(["dashboard", "orders", "dispatch", "liveMap", "fleet", "pricing", "invoices", "customers", "reports", "content", "users", "messages", "settings", "audit"]);
 
 export async function AdminShell({ user, brand, children }: { user: { name?: string | null; role: string; permissions: string[] }; brand: Brand; children: React.ReactNode }) {
   const t = await getTranslations("Admin.nav");

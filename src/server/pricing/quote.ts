@@ -4,7 +4,7 @@ import { getSettings } from "@/server/settings";
 import { routeDistance, type RouteEstimate } from "@/server/maps/distance";
 import type { QuoteInput } from "@/lib/validation/booking";
 import { calculatePrice } from "./engine";
-import type { DiscountCode, PriceLine, PricingRule, RouteTariff, RuleConditions } from "./types";
+import type { ContractPrice, DiscountCode, PriceLine, PricingRule, RouteTariff, RuleConditions } from "./types";
 
 export interface QuoteResult {
   quoteId: string | null;
@@ -22,7 +22,7 @@ export interface QuoteResult {
 }
 
 /** Loads the current price list from the database and prices a quote request. Saves the estimate for conversion reporting. */
-export async function priceQuote(input: QuoteInput, opts: { save?: boolean; now?: Date } = {}): Promise<QuoteResult> {
+export async function priceQuote(input: QuoteInput, opts: { save?: boolean; now?: Date; companyId?: string } = {}): Promise<QuoteResult> {
   const now = opts.now ?? new Date();
   const settings = await getSettings();
   const route = await distanceFor(input, { lat: settings["contact.lat"], lng: settings["contact.lng"] });
@@ -34,11 +34,13 @@ export async function priceQuote(input: QuoteInput, opts: { save?: boolean; now?
     return { quoteId: null, available: false, reason: "no_coordinates", ...empty, ...routeInfo };
   }
 
-  const [rules, tariffs, holidays, discount] = await Promise.all([
+  const [rules, tariffs, holidays, discount, contract] = await Promise.all([
     db.pricingRule.findMany({ where: { isActive: true } }),
     input.service === "INTERNATIONAL_TRANSPORT" ? db.routeTariff.findMany({ where: { isActive: true } }) : Promise.resolve([]),
     db.holiday.findMany({ where: { date: { gte: new Date(now.getTime() - 864e5), lte: new Date(now.getTime() + 400 * 864e5) } } }),
     input.discountCode ? db.discountCode.findUnique({ where: { code: input.discountCode } }) : Promise.resolve(null),
+    // Business customers get their contract prices
+    opts.companyId ? db.contractPrice.findMany({ where: { companyId: opts.companyId } }) : Promise.resolve([]),
   ]);
 
   const result = calculatePrice(
@@ -58,6 +60,7 @@ export async function priceQuote(input: QuoteInput, opts: { save?: boolean; now?
       rules: rules.map(toRule),
       routeTariffs: tariffs as RouteTariff[],
       discount: discount as DiscountCode | null,
+      contract: contract as ContractPrice[],
       holidays: holidays.map((h) => h.date.toISOString().slice(0, 10)),
       vatRateBp: settings["vat.rateBp"],
       now,

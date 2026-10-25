@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { resetLogoAction, saveSettingsAction, uploadLogoAction, type SettingsState } from "@/app/admin/(panel)/settings/actions";
 import type { Settings } from "@/server/settings/defaults";
 import { Panel } from "./ui";
+import { useKeepInputSubmit } from "./use-submit";
 
 function Feedback({ state }: { state: SettingsState }) {
   const t = useTranslations("Admin.settings");
@@ -53,6 +54,7 @@ type Field = { key: keyof Settings; label: string; type?: "text" | "number" | "c
 export function SettingsForm({ values }: { values: Settings }) {
   const t = useTranslations("Admin.settings");
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettingsAction, undefined);
+  const onSubmit = useKeepInputSubmit(action);
   const invalid = new Set(state?.fields ?? []);
 
   const groups: { title: string; fields: Field[] }[] = [
@@ -73,6 +75,7 @@ export function SettingsForm({ values }: { values: Settings }) {
       { key: "contact.phone", label: t("phone"), type: "tel" },
       { key: "contact.whatsapp", label: t("whatsapp"), type: "tel" },
       { key: "contact.email", label: t("email"), type: "email" },
+      { key: "review.url", label: t("reviewUrl"), help: t("reviewUrlHelp") },
     ] },
     { title: t("stats"), fields: [
       { key: "stats.yearsInBusiness", label: t("years"), type: "number" },
@@ -87,11 +90,12 @@ export function SettingsForm({ values }: { values: Settings }) {
       { key: "retention.inspectionPhotosDays", label: t("retentionPhotos"), type: "number" },
       { key: "retention.documentsDays", label: t("retentionDocs"), type: "number" },
       { key: "retention.draftsDays", label: t("retentionDrafts"), type: "number" },
+      { key: "retention.gpsDays", label: t("retentionGps"), type: "number" },
     ] },
   ];
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         {groups.map((g) => (
           <Panel key={g.title} title={g.title}>

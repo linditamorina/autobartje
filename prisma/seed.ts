@@ -27,17 +27,18 @@ const HOLIDAYS: [string, string][] = [
   ["2027-05-09", "Dita e Evropës"], ["2027-05-17", "Kurban Bajrami"], ["2027-12-25", "Krishtlindjet katolike"],
 ];
 
-const AREAS: [string, string, number, number][] = [
-  ["peje", "Pejë", 42.6593, 20.2887],
-  ["prishtine", "Prishtinë", 42.6629, 21.1655],
-  ["prizren", "Prizren", 42.2139, 20.7397],
-  ["gjakove", "Gjakovë", 42.3803, 20.4308],
-  ["mitrovice", "Mitrovicë", 42.8914, 20.866],
-  ["ferizaj", "Ferizaj", 42.3702, 21.1553],
-  ["gjilan", "Gjilan", 42.4635, 21.4694],
-  ["istog", "Istog", 42.7808, 20.4875],
-  ["kline", "Klinë", 42.6214, 20.5778],
-  ["decan", "Deçan", 42.5402, 20.2879],
+// slug, Albanian name, international name (en/de), lat, lng
+const AREAS: [string, string, string, number, number][] = [
+  ["peje", "Pejë", "Peja", 42.6593, 20.2887],
+  ["prishtine", "Prishtinë", "Pristina", 42.6629, 21.1655],
+  ["prizren", "Prizren", "Prizren", 42.2139, 20.7397],
+  ["gjakove", "Gjakovë", "Gjakova", 42.3803, 20.4308],
+  ["mitrovice", "Mitrovicë", "Mitrovica", 42.8914, 20.866],
+  ["ferizaj", "Ferizaj", "Ferizaj", 42.3702, 21.1553],
+  ["gjilan", "Gjilan", "Gjilan", 42.4635, 21.4694],
+  ["istog", "Istog", "Istog", 42.7808, 20.4875],
+  ["kline", "Klinë", "Klina", 42.6214, 20.5778],
+  ["decan", "Deçan", "Deçan", 42.5402, 20.2879],
 ];
 
 async function main() {
@@ -80,11 +81,11 @@ async function main() {
   }
 
   // Service areas (city pages)
-  for (const [slug, name, lat, lng] of AREAS) {
+  for (const [slug, sq, intl, lat, lng] of AREAS) {
     await db.serviceArea.upsert({
       where: { slug },
       update: {},
-      create: { slug, name: { sq: name, en: name, de: name }, lat, lng },
+      create: { slug, name: { sq, en: intl, de: intl }, lat, lng },
     });
   }
 
@@ -101,14 +102,14 @@ async function main() {
   for (const t of trucks) await db.truck.upsert({ where: { plate: t.plate }, update: {}, create: t });
 
   const drivers = [
-    { email: "arben@example.com", name: "Arben K.", category: "C" as const },
-    { email: "driton@example.com", name: "Driton M.", category: "CE" as const },
+    { email: "arben@example.com", name: "Arben K.", phone: "+38344000101", category: "C" as const },
+    { email: "driton@example.com", name: "Driton M.", phone: "+38344000102", category: "CE" as const },
   ];
   for (const d of drivers) {
     const user = await db.user.upsert({
       where: { email: d.email },
       update: {},
-      create: { email: d.email, name: d.name, roleId: roles.DRIVER, passwordHash: await hash("driver-demo-password") },
+      create: { email: d.email, name: d.name, phone: d.phone, roleId: roles.DRIVER, passwordHash: await hash("driver-demo-password") },
     });
     await db.driver.upsert({
       where: { userId: user.id },
@@ -116,6 +117,22 @@ async function main() {
       create: { userId: user.id, licenseCategory: d.category, licenseExpires: new Date("2029-06-30") },
     });
   }
+
+  // Demo business customer with a contract price and a portal login
+  const dealer =
+    (await db.company.findUnique({ where: { nui: "811234567" } })) ??
+    (await db.company.create({
+      data: {
+        name: "Auto Dukagjini SH.P.K.", type: "CAR_DEALER", nui: "811234567", address: "Rruga Eliot Engel", city: "Pejë", billingEmail: "fatura@example.com", monthlyInvoicing: true,
+        contractPrices: { create: { service: "DOMESTIC_TRANSPORT", baseCents: 2500, perKmCents: 70 } },
+      },
+    }));
+  const b2bRole = await db.role.findUniqueOrThrow({ where: { key: "B2B_USER" } });
+  await db.user.upsert({
+    where: { email: "dealer@example.com" },
+    update: {},
+    create: { email: "dealer@example.com", name: "Besnik Dukagjini", phone: "+38344000201", roleId: b2bRole.id, companyId: dealer.id, passwordHash: await hash("portal-demo-password") },
+  });
 
   // FAQ
   if ((await db.faqItem.count()) === 0) {
@@ -161,6 +178,13 @@ async function main() {
       });
     }
     await db.counter.upsert({ where: { key: `order:${new Date().getFullYear()}` }, update: {}, create: { key: `order:${new Date().getFullYear()}`, value: statuses.length } });
+
+    // The confirmed order is Arben's next job, so the driver app has something to show.
+    const confirmed = await db.order.findFirstOrThrow({ where: { customerId: customer.id, status: "CONFIRMED" } });
+    const arben = await db.driver.findFirstOrThrow({ where: { user: { email: "arben@example.com" } } });
+    const truck = await db.truck.findUniqueOrThrow({ where: { plate: "03-123-AB" } });
+    const start = new Date(Date.now() + 3600_000);
+    await db.assignment.create({ data: { orderId: confirmed.id, driverId: arben.id, truckId: truck.id, plannedStart: start, plannedEnd: new Date(start.getTime() + 2 * 3600_000) } });
   }
 }
 

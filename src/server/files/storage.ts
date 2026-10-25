@@ -1,5 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -48,7 +50,54 @@ export async function presignDownload(key: string, expiresIn = 300): Promise<str
 }
 
 export async function deleteObject(key: string): Promise<void> {
+  if (!storageConfigured() && localDir()) return void (await rm(localPath(key), { force: true }));
   await s3().send(new DeleteObjectCommand({ Bucket: privateBucket(), Key: key }));
+}
+
+/**
+ * Without R2 (local development, CI) private files go to a folder instead:
+ * LOCAL_STORAGE_DIR, or ".storage" outside production.
+ */
+function localDir(): string | null {
+  if (process.env.LOCAL_STORAGE_DIR) return process.env.LOCAL_STORAGE_DIR;
+  return process.env.NODE_ENV === "production" ? null : path.join(process.cwd(), ".storage");
+}
+
+function localPath(key: string): string {
+  const root = path.resolve(localDir()!);
+  const file = path.resolve(root, key);
+  if (!file.startsWith(root + path.sep)) throw new Error("Invalid storage key");
+  return file;
+}
+
+/** True when private files can be written, to R2 or to the local fallback folder. */
+export function privateStorageAvailable(): boolean {
+  return storageConfigured() || localDir() != null;
+}
+
+/** Writes a private file that our server has already checked (inspection photos, signatures). */
+export async function putPrivateObject(key: string, body: Uint8Array, contentType: string): Promise<void> {
+  if (storageConfigured()) {
+    await s3().send(new PutObjectCommand({ Bucket: privateBucket(), Key: key, Body: body, ContentType: contentType }));
+    return;
+  }
+  if (!localDir()) throw new Error("Private storage is not configured");
+  const file = localPath(key);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, body);
+}
+
+export async function getPrivateObject(key: string): Promise<Uint8Array | null> {
+  try {
+    if (storageConfigured()) {
+      const res = await s3().send(new GetObjectCommand({ Bucket: privateBucket(), Key: key }));
+      return res.Body ? await res.Body.transformToByteArray() : null;
+    }
+    if (!localDir()) return null;
+    return new Uint8Array(await readFile(localPath(key)));
+  } catch {
+    return null;
+  }
 }
 
 /** Site images (logo) in the public bucket, served from R2_PUBLIC_URL. Keys are unique, so cache forever. */

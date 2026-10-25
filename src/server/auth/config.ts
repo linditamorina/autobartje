@@ -51,8 +51,10 @@ export const { handlers, auth, signIn, signOut, unstable_update: updateSession }
       async authorize(raw) {
         const parsed = credentials.safeParse(raw);
         if (!parsed.success) return null;
-        const user = await db.user.findUnique({ where: { email: parsed.data.email }, include: { role: true } });
-        if (!user?.passwordHash || !user.isActive || user.role.key === "B2B_USER") return null;
+        const user = await db.user.findUnique({ where: { email: parsed.data.email }, include: { role: true, company: { select: { isActive: true } } } });
+        if (!user?.passwordHash || !user.isActive) return null;
+        // Business portal logins only while their company is active
+        if (user.role.key === "B2B_USER" && !user.company?.isActive) return null;
         if (user.lockedUntil && user.lockedUntil > new Date()) throw new LockedError();
 
         const ok = await verifyPassword(user.passwordHash, parsed.data.password).catch(() => false);

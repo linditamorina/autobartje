@@ -7,6 +7,7 @@ import { assertStaff } from "@/server/auth/guard";
 import { addOrderNote, changeOrderStatus, createManualOrder, OrderError, setFinalPrice } from "@/server/orders/manage";
 import { ORDER_STATUSES } from "@/server/orders/status";
 import { phoneSchema, SERVICES, VEHICLE_TYPES } from "@/lib/validation/booking";
+import { kickOutbox } from "@/server/notifications/kick";
 
 export type ActionState = { ok?: boolean; error?: string } | undefined;
 
@@ -28,6 +29,7 @@ export async function changeStatusAction(_: ActionState, form: FormData): Promis
   if (!parsed.success) return { error: "error" };
   try {
     await changeOrderStatus(parsed.data.orderId, parsed.data.to, user.id, { note: parsed.data.note, finalCents: parsed.data.finalPrice });
+    kickOutbox();
   } catch (err) {
     if (err instanceof OrderError) return { error: err.code === "price_required" ? "priceRequired" : err.code === "invalid_transition" ? "invalidTransition" : "error" };
     throw err;

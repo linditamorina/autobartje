@@ -9,7 +9,7 @@ import { auth, mfaProof, signIn, updateSession } from "@/server/auth/config";
 import { db } from "@/server/db";
 import { audit } from "@/server/audit";
 import { decrypt, encrypt } from "@/server/security/crypto";
-import { rateLimit } from "@/server/security/rate-limit";
+import { isLimited, rateLimit } from "@/server/security/rate-limit";
 import { clientIp } from "@/server/security/request";
 import { getSettings } from "@/server/settings";
 
@@ -17,11 +17,16 @@ export type FormState = { error?: string } | undefined;
 
 export async function loginAction(_: FormState, form: FormData): Promise<FormState> {
   const ip = (await clientIp()) ?? "unknown";
-  if (!rateLimit(`login:${ip}`, 10, 10 * 60_000).ok) return { error: "locked" };
+  // Only failed attempts count, so an office where everyone logs in from one address is not locked out.
+  const key = `login:${ip}`;
+  if (isLimited(key, 10)) return { error: "locked" };
   try {
     await signIn("credentials", { email: form.get("email"), password: form.get("password"), redirectTo: "/admin" });
   } catch (err) {
-    if (err instanceof AuthError) return { error: (err as AuthError & { code?: string }).code === "locked" ? "locked" : "invalid" };
+    if (err instanceof AuthError) {
+      rateLimit(key, 10, 10 * 60_000);
+      return { error: (err as AuthError & { code?: string }).code === "locked" ? "locked" : "invalid" };
+    }
     throw err; // redirect
   }
 }
