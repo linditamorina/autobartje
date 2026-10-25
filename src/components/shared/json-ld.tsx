@@ -24,7 +24,7 @@ export function localBusinessJsonLd(s: Settings, brand: Brand, locale: string): 
     address: {
       "@type": "PostalAddress",
       streetAddress: s["company.address"] || undefined,
-      addressLocality: s["company.city"],
+      addressLocality: s["company.city"] || undefined,
       addressCountry: "XK",
     },
     geo: { "@type": "GeoCoordinates", latitude: s["contact.lat"], longitude: s["contact.lng"] },

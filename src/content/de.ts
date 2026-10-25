@@ -4,7 +4,7 @@ import type { PageSet } from "./types";
 export const de: PageSet = {
   "services/emergency-towing": {
     title: "Abschleppdienst 24/7",
-    description: "Unfall, Motorschaden oder das Auto springt nicht an? Wir kommen Tag und Nacht, in Peja und im ganzen Kosovo.",
+    description: "Unfall, Motorschaden oder das Auto springt nicht an? Wir kommen Tag und Nacht, im ganzen Kosovo.",
     body: `
 ## Wann Sie uns anrufen
 
@@ -22,7 +22,7 @@ export const de: PageSet = {
 
 ## Warum wir
 
-- In Peja und Umgebung sind wir meist innerhalb von 30 Minuten da
+- Meist sind wir innerhalb von 30 Minuten da
 - Plateaufahrzeuge mit Seilwinde für Autos, die nicht mehr fahren
 - Klarer Preis vor der Abfahrt, keine versteckten Kosten
 - Rechnungen mit MwSt. für Firmen und Versicherungen
@@ -136,15 +136,15 @@ Fragen? Rufen Sie uns an oder [fordern Sie ein Angebot an](/quote?service=INTERN
   },
   about: {
     title: "Über uns",
-    description: "{{brand.name}} ist ein Abschlepp- und Autotransportunternehmen aus {{company.city}}, rund um die Uhr erreichbar.",
+    description: "{{brand.name}} ist ein Abschlepp- und Autotransportunternehmen im Kosovo, rund um die Uhr erreichbar.",
     body: `
-**{{brand.name}}** ist ein Familienunternehmen für Abschleppdienst und Autotransport mit Sitz in {{company.city}}.
+**{{brand.name}}** ist ein Familienunternehmen für Abschleppdienst und Autotransport im Kosovo.
 
 Tag und Nacht helfen wir Fahrern nach Unfällen und Pannen, transportieren Autos im Kosovo und holen Autos aus Europa.
 
 ## Wie wir arbeiten
 
-- **Schnell:** in Peja und Umgebung meist innerhalb von 30 Minuten
+- **Schnell:** meist innerhalb von 30 Minuten
 - **Klar:** Sie kennen den Preis, bevor wir losfahren
 - **Sorgfältig:** wir fotografieren das Auto vor und nach dem Aufladen, jeder Transport ist versichert
 - **Mit Rechnung:** Rechnungen mit MwSt. für Privatkunden, Firmen und Versicherungen

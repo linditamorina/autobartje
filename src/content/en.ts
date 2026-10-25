@@ -4,7 +4,7 @@ import type { PageSet } from "./types";
 export const en: PageSet = {
   "services/emergency-towing": {
     title: "24/7 emergency towing",
-    description: "Accident, engine failure or a car that won't start? We come day and night in Peja and across Kosovo.",
+    description: "Accident, engine failure or a car that won't start? We come day and night, across Kosovo.",
     body: `
 ## When to call us
 
@@ -22,7 +22,7 @@ export const en: PageSet = {
 
 ## Why us
 
-- In Peja and nearby we usually arrive within 30 minutes
+- We usually arrive within 30 minutes
 - Flatbeds with a winch for cars that can't move
 - A clear price before we start, no hidden costs
 - VAT invoices for companies and insurers
@@ -136,15 +136,15 @@ Questions? Call us or [request a quote](/quote?service=INTERNATIONAL_TRANSPORT).
   },
   about: {
     title: "About us",
-    description: "{{brand.name}} is a towing and car transport company based in {{company.city}}, available 24 hours a day.",
+    description: "{{brand.name}} is a towing and car transport company in Kosovo, available 24 hours a day.",
     body: `
-**{{brand.name}}** is a family towing and car transport company based in {{company.city}}.
+**{{brand.name}}** is a family towing and car transport company in Kosovo.
 
 Day and night we help drivers after accidents and breakdowns, move cars within Kosovo and bring cars from Europe.
 
 ## How we work
 
-- **Fast:** in Peja and nearby we usually arrive within 30 minutes
+- **Fast:** we usually arrive within 30 minutes
 - **Clear:** you know the price before we set off
 - **Careful:** we photograph the car before and after loading, and every transport is insured
 - **Invoiced:** VAT invoices for private customers, companies and insurers

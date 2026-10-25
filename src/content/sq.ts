@@ -4,7 +4,7 @@ import type { PageSet } from "./types";
 export const sq: PageSet = {
   "services/emergency-towing": {
     title: "Tërheqje urgjente 24/7",
-    description: "Aksident, defekt motori apo vetura nuk ndizet? Vijmë ditë e natë në Pejë dhe në gjithë Kosovën.",
+    description: "Aksident, defekt motori apo vetura nuk ndizet? Vijmë ditë e natë në gjithë Kosovën.",
     body: `
 ## Kur të na thërrisni
 
@@ -22,7 +22,7 @@ export const sq: PageSet = {
 
 ## Pse ne
 
-- Në Pejë dhe rrethinë zakonisht arrijmë brenda 30 minutave
+- Zakonisht arrijmë brenda 30 minutave
 - Platforma me vinç për vetura që nuk lëvizin
 - Çmim i qartë para nisjes, pa kosto të fshehura
 - Faturë me TVSH për kompani dhe sigurime
@@ -136,15 +136,15 @@ Keni pyetje? Na thërrisni ose [kërkoni një ofertë](/quote?service=INTERNATIO
   },
   about: {
     title: "Rreth nesh",
-    description: "{{brand.name}} është kompani tërheqjeje dhe transporti veturash me bazë në {{company.city}}, në shërbim 24 orë në ditë.",
+    description: "{{brand.name}} është kompani tërheqjeje dhe transporti veturash në Kosovë, në shërbim 24 orë në ditë.",
     body: `
-**{{brand.name}}** është kompani familjare për tërheqje dhe transport veturash me bazë në {{company.city}}.
+**{{brand.name}}** është kompani familjare për tërheqje dhe transport veturash në Kosovë.
 
 Ditë e natë ndihmojmë shoferët pas aksidenteve dhe defekteve, lëvizim vetura brenda Kosovës dhe sjellim vetura nga Evropa.
 
 ## Si punojmë
 
-- **Shpejt:** në Pejë dhe rrethinë zakonisht arrijmë brenda 30 minutave
+- **Shpejt:** zakonisht arrijmë brenda 30 minutave
 - **Qartë:** e dini çmimin para se të nisemi
 - **Me kujdes:** fotografojmë veturën para dhe pas ngarkimit, dhe çdo transport është i siguruar
 - **Me faturë:** lëshojmë faturë me TVSH për persona privatë, kompani dhe sigurime
