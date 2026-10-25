@@ -1,6 +1,6 @@
 {
   "Meta": {
-    "title": "{brand}: 24/7 towing in Peja and across Kosovo",
+    "title": "{brand}: 24/7 towing across Kosovo",
     "description": "24/7 towing and roadside assistance, car transport within Kosovo and car import from Germany, Switzerland and Austria. Instant online quote."
   },
   "Nav": {
@@ -32,7 +32,7 @@
   "Hero": {
     "badge": "Available 24 hours, 7 days",
     "title": "Towing and car transport, whenever you need it",
-    "subtitle": "From Peja across Kosovo, and from Europe to your door. We arrive in {minutes} minutes on average.",
+    "subtitle": "Across all of Kosovo, and from Europe to your door. We arrive in {minutes} minutes on average.",
     "emergencyTitle": "Emergency now",
     "emergencyText": "Broken down or had an accident? Call or send your location with one tap.",
     "emergencyCall": "Call now",
@@ -1099,7 +1099,7 @@
       "enclosed": "Enclosed carrier"
     },
     "areasTitle": "Areas we serve",
-    "areasIntro": "From our base in Peja we cover all of Kosovo, day and night.",
+    "areasIntro": "We cover all of Kosovo, day and night.",
     "areaTitle": "Towing in {city}",
     "areaLead": "24/7 towing, roadside help and car transport in {city} and nearby.",
     "areaBody": "We tow and transport cars in **{city}** and the surrounding villages, 24 hours a day.\n\n- Breakdowns and accidents: call us and send your location\n- Planned transport to the garage, inspection or a new owner\n- Clear price before we set off, VAT invoice on request",

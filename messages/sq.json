@@ -1,6 +1,6 @@
 {
   "Meta": {
-    "title": "{brand}: Tërheqje automjetesh 24/7 në Pejë dhe gjithë Kosovën",
+    "title": "{brand}: Tërheqje automjetesh 24/7 në gjithë Kosovën",
     "description": "Tërheqje dhe ndihmë në rrugë 24/7, transport automjetesh brenda Kosovës dhe import nga Gjermania, Zvicra dhe Austria. Ofertë e menjëhershme online."
   },
   "Nav": {
@@ -32,7 +32,7 @@
   "Hero": {
     "badge": "Në dispozicion 24 orë, 7 ditë",
     "title": "Tërheqje dhe transport automjetesh, kur të duhet",
-    "subtitle": "Nga Peja në gjithë Kosovën dhe nga Evropa në shtëpi. Mesatarisht arrijmë brenda {minutes} minutave.",
+    "subtitle": "Në gjithë Kosovën dhe nga Evropa në shtëpi. Mesatarisht arrijmë brenda {minutes} minutave.",
     "emergencyTitle": "Urgjencë tani",
     "emergencyText": "Automjeti u prish ose pësoi aksident? Thirr ose dërgo vendndodhjen me një prekje.",
     "emergencyCall": "Thirr tani",
@@ -1099,7 +1099,7 @@
       "enclosed": "Bartës i mbyllur"
     },
     "areasTitle": "Zonat ku punojmë",
-    "areasIntro": "Nga baza jonë në Pejë mbulojmë gjithë Kosovën, ditë e natë.",
+    "areasIntro": "Mbulojmë gjithë Kosovën, ditë e natë.",
     "areaTitle": "Tërheqje në {city}",
     "areaLead": "Tërheqje 24/7, ndihmë në rrugë dhe transport veturash në {city} dhe rrethinë.",
     "areaBody": "Tërheqim dhe transportojmë vetura në **{city}** dhe fshatrat përreth, 24 orë në ditë.\n\n- Defekte dhe aksidente: na thërrisni dhe dërgoni lokacionin\n- Transport i planifikuar te servisi, kontrolli teknik ose pronari i ri\n- Çmim i qartë para nisjes, faturë me TVSH sipas kërkesës",

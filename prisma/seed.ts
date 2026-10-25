@@ -138,11 +138,11 @@ async function main() {
   if ((await db.faqItem.count()) === 0) {
     await db.faqItem.createMany({
       data: [
-        { locale: "sq", position: 1, question: "Sa shpejt mund të vini?", answer: "Në Pejë dhe rrethinë zakonisht brenda 30 minutave, ditë e natë." },
+        { locale: "sq", position: 1, question: "Sa shpejt mund të vini?", answer: "Zakonisht brenda 30 minutave, ditë e natë." },
         { locale: "sq", position: 2, question: "A është i siguruar automjeti gjatë transportit?", answer: "Po, çdo automjet është i siguruar nga momenti i ngarkimit deri në dorëzim." },
-        { locale: "en", position: 1, question: "How fast can you arrive?", answer: "In Peja and nearby usually within 30 minutes, day and night." },
+        { locale: "en", position: 1, question: "How fast can you arrive?", answer: "Usually within 30 minutes, day and night." },
         { locale: "en", position: 2, question: "Is my vehicle insured during transport?", answer: "Yes, every vehicle is insured from loading until delivery." },
-        { locale: "de", position: 1, question: "Wie schnell können Sie da sein?", answer: "In Peja und Umgebung meist innerhalb von 30 Minuten, Tag und Nacht." },
+        { locale: "de", position: 1, question: "Wie schnell können Sie da sein?", answer: "Meist innerhalb von 30 Minuten, Tag und Nacht." },
         { locale: "de", position: 2, question: "Ist mein Fahrzeug während des Transports versichert?", answer: "Ja, jedes Fahrzeug ist vom Aufladen bis zur Übergabe versichert." },
       ],
     });

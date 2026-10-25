@@ -1,6 +1,6 @@
 {
   "Meta": {
-    "title": "{brand}: Abschleppdienst 24/7 in Peja und im ganzen Kosovo",
+    "title": "{brand}: Abschleppdienst 24/7 im ganzen Kosovo",
     "description": "Abschleppdienst und Pannenhilfe rund um die Uhr, Fahrzeugtransport im Kosovo und Autoimport aus Deutschland, der Schweiz und Österreich. Sofortiges Online-Angebot."
   },
   "Nav": {
@@ -32,7 +32,7 @@
   "Hero": {
     "badge": "Rund um die Uhr erreichbar",
     "title": "Abschleppen und Fahrzeugtransport, wann immer Sie es brauchen",
-    "subtitle": "Von Peja in den ganzen Kosovo und aus Europa bis vor Ihre Tür. Im Schnitt sind wir in {minutes} Minuten da.",
+    "subtitle": "Im ganzen Kosovo und aus Europa bis vor Ihre Tür. Im Schnitt sind wir in {minutes} Minuten da.",
     "emergencyTitle": "Notfall jetzt",
     "emergencyText": "Panne oder Unfall? Rufen Sie an oder senden Sie Ihren Standort mit einem Tippen.",
     "emergencyCall": "Jetzt anrufen",
@@ -1099,7 +1099,7 @@
       "enclosed": "Geschlossener Transporter"
     },
     "areasTitle": "Einsatzgebiete",
-    "areasIntro": "Von unserem Standort in Peja aus fahren wir im ganzen Kosovo, Tag und Nacht.",
+    "areasIntro": "Wir fahren im ganzen Kosovo, Tag und Nacht.",
     "areaTitle": "Abschleppdienst in {city}",
     "areaLead": "Abschleppdienst 24/7, Pannenhilfe und Autotransport in {city} und Umgebung.",
     "areaBody": "Wir schleppen und transportieren Autos in **{city}** und den umliegenden Dörfern, rund um die Uhr.\n\n- Pannen und Unfälle: rufen Sie an und senden Sie Ihren Standort\n- Geplanter Transport zur Werkstatt, zur Prüfung oder zum neuen Besitzer\n- Klarer Preis vor der Abfahrt, Rechnung mit MwSt. auf Wunsch",

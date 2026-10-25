@@ -47,7 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   "company.legalName": "autobartje SH.P.K.",
   "company.nui": "",
   "company.address": "",
-  "company.city": "Pejë",
+  "company.city": "",
   "company.iban": "",
   "company.bank": "",
   "contact.phone": "+38344000000",
