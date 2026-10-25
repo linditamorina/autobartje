@@ -17,7 +17,7 @@ Google Maps · Cloudflare Turnstile · Sentry · Vitest · Playwright.
 Requirements: Node 22, Docker (or a local PostgreSQL 16).
 
 ```bash
-cp .env.example .env            # fill in at least DATABASE_URL and AUTH_SECRET
+cp .env.example .env            # fill in DATABASE_URL, AUTH_SECRET, DATA_ENCRYPTION_KEY
 docker compose up -d db minio   # Postgres + S3-compatible storage
 npm install                     # also generates the Prisma client
 npx prisma migrate dev          # create tables
@@ -26,7 +26,9 @@ npm run dev                     # http://localhost:3000
 ```
 
 The seed creates the owner account from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`. Two-factor
-authentication is required for Owner and Admin and is set up on first login.
+authentication is required for Owner and Admin and is set up on first login at `/admin/login`.
+Generate the secrets with `openssl rand -base64 33` (AUTH_SECRET) and `openssl rand -base64 32` (DATA_ENCRYPTION_KEY,
+which encrypts authenticator secrets at rest; changing it later forces every staff member to set up 2FA again).
 
 ## Scripts
 
@@ -45,7 +47,7 @@ authentication is required for Owner and Admin and is set up on first login.
 prisma/            schema.prisma, migrations, seed.ts
 messages/          UI translations (sq, en, de)
 src/app/[locale]/  public website (localised routes; sq has no URL prefix)
-src/app/admin/     back office (coming in phase 1)
+src/app/admin/     back office: login + 2FA, orders, dispatch, fleet, prices, staff, settings, audit log
 src/app/api/       route handlers: consent log, uploads, webhooks, cron
 src/components/    ui/ primitives, marketing/, shared/
 src/server/        business logic without React: pricing, invoicing, settings, auth, db
@@ -61,13 +63,112 @@ tests/e2e/         Playwright tests
   B2B contract prices and fixed international route tariffs.
 - **Brand name, logo and colour** are settings (`brand.*` in the `Setting` table), editable in admin and
   shown on the site, invoices and emails. Until changed, the built-in logo and the name "autobartje" are used.
+  Logo uploads go to the public R2 bucket, so `R2_PUBLIC_URL` must be set for the upload button to appear.
 - **Privacy**: no analytics or marketing scripts load before cookie consent; "Reject" is as prominent as "Accept";
   each choice is logged in `Consent` with a truncated IP. Retention periods are settings.
 
+## Messages (SMS, WhatsApp and email)
+
+Every customer, driver and office message is written to the `NotificationOutbox` table in the same
+transaction as the order change, then sent right after the response and by `/api/cron/notifications`
+every 5 minutes (the GitHub Actions workflow `cron.yml`, because Vercel's Hobby plan runs cron jobs only daily;
+it needs the repository secrets `SITE_URL` and `CRON_SECRET`; on Vercel Pro the schedule in `vercel.json` can be
+set to every minute instead). Protect the endpoint with `CRON_SECRET`. Failed sends retry after
+1, 5, 15 and 60 minutes; the admin page **Messages** shows every message and can resend failed ones.
+Texts live in `src/server/notifications/templates.ts` (sq/en/de). SMS drop diacritics (ë→e, ç→c) so a
+message fits 160 characters instead of 70. WhatsApp customers get WhatsApp messages once the
+WhatsApp Business API is set up (below), and SMS until then. `/api/cron/daily` sends fleet paperwork reminders (30/7/1/0 days) and deletes data
+past the retention periods set in Settings.
+
+## Website content
+
+- Service pages, the import guide, About and the legal pages ship with ready-made text in Albanian, English and German (`src/content/{sq,en,de}.ts`). Admin → Content edits a page per language; "Reset to original text" drops the edit. `{{company.legalName}}`, `{{contact.email}}` and other setting keys are filled in when the page is shown.
+- FAQ entries, city pages (`/areas/<slug>`) and blog articles live in the database and are managed in the same screen. An article without a publish time is a draft; a future time schedules it.
+- The legal texts are a starting point and should be checked by a lawyer before launch.
+- `sitemap.xml` lists every page in every language with hreflang alternates, plus city pages and published articles. Pages carry breadcrumb, service and FAQ structured data.
+
+## Driver app
+
+- Drivers log in at `/admin/login` with their own account (role Driver) and land on `/driver`, a phone app they can add to the home screen. It lists today's jobs (urgent first) and the ones finished today. Demo login after seeding: `arben@example.com` / `driver-demo-password`.
+- A job shows one big button for the next step: start driving → vehicle loaded → on the way → delivered (roadside help: start → arrived → done). Every step updates the order and messages the customer, and records the phone's position when the driver allows it.
+- Loading needs the pickup inspection: photos from the front, rear and both sides (odometer, interior and damage are optional), odometer and fuel. Delivery needs the same photos plus the customer's name and finger signature. Photos are shrunk on the phone, stored privately with a SHA-256 checksum, and shown only to the office and the assigned driver. The office sees both inspections and the signature on the order page.
+- Cash the driver takes is recorded on the job and matched to the invoice when the office issues it.
+- Without R2, private files are written to `LOCAL_STORAGE_DIR` (or `.storage` in development). Set R2 or a persistent `LOCAL_STORAGE_DIR` in production; the photo upload refuses to work without either. Photos and signatures of closed orders are deleted after "Inspection photos" days in Settings → Data retention.
+
+## Order tracking
+
+- Every order has a private tracking link (`/track/<64 random hex characters>`). It is sent in the booking, confirmation, "driver on the way" and "vehicle loaded" messages, shown after booking, and on the admin order page for the office to share by phone or WhatsApp.
+- Customers without the link can open `/track` and enter the order number and the phone they booked with (rate limited per address and per order number).
+- The page shows the steps with times, the planned time, route, the driver's first name and truck, and the price. It refreshes itself every 20 seconds while open and the order is in progress. It never shows notes, staff or vehicle details, is not indexed, and stops showing details 30 days after the order is finished or as soon as the customer's data is anonymised.
+
+## Live GPS
+
+- While one of a driver's jobs is under way (driving to the pickup, loading, driving to the drop-off), the driver app sends the phone's position every 30 seconds or every 150 m, and keeps the screen on, because browsers pause GPS when the phone locks. A bar at the top shows whether sharing works; if the driver blocked location it says how to allow it. Nothing is recorded between jobs, and the server refuses points when no job is under way.
+- **Live map** (Admin → Live map, for dispatchers and up) lists every job on the road with its driver and truck, when the truck was last seen, the distance to its next stop and a rough arrival time. It refreshes every 15 seconds. Trucks not seen for 10 minutes are marked.
+- The customer's tracking page shows "About 9 km away, there in about 15 min" and the truck on a map while the truck is on the road for their order and its position is under 10 minutes old.
+- The admin order page keeps the route driven for each order. Points are deleted after "Truck GPS routes" days in Settings → Data retention (90 by default).
+- Maps need `NEXT_PUBLIC_GOOGLE_MAPS_KEY` (the same key as the address search). Without it the pages show the same facts as text with an "Open in Google Maps" link. Arrival times are estimated from the straight-line distance, not live traffic.
+
+## Reports
+
+Admin → Reports (Owner, Admin, Accountant) shows a period (this month, last month, last 30 days, this year or any dates):
+orders, finished orders and their value, invoiced amounts with and without VAT, the cancellation rate, the median arrival
+time on urgent call-outs (with the time 90 % of them stayed under), the time to confirm a booking, how many price checks
+became bookings and the money received per payment method. Below that: invoiced per month for the last 12 months, orders
+by service, channel and lead source, finished jobs per driver, and when orders come in by weekday and hour. "Orders (CSV)"
+downloads the period's orders for Excel (without customer contact details). The maths is in `src/server/reports/compute.ts`
+with unit tests.
+
+## Partner API
+
+- Insurers, dealers and leasing companies can price, book and follow jobs from their own systems. Developer documentation for partners is at `/developers`, the OpenAPI 3.1 description at `/api/v1/openapi.json`.
+- Endpoints (`/api/v1`): `POST /quotes` (price with the company's contract, nothing booked), `POST /orders` (book; an `Idempotency-Key` header makes retries safe), `GET /orders` (filter by status, `updated_since`, `reference`; paged), `GET /orders/{number}`. Orders arrive with channel "Partner API" and are confirmed by the office as usual. Partners never see other companies' orders, internal notes or staff details.
+- Admin → Customers → a company → **API access** (Owner and Admin only): create a key (shown once; only its SHA-256 is stored), revoke it, and add up to 5 webhooks for `order.created` and `order.status_changed`. Each webhook gets a signing secret (shown once, stored encrypted); requests carry `X-Autobartje-Signature: t=…,v1=…` (HMAC-SHA256 of `t.body`). Failed deliveries are retried after 1, 5, 15, 60, 360 and 1440 minutes; after 50 failures in a row the webhook switches off and the company page says why. The page lists the last deliveries and can send a test event.
+- Webhook URLs must be public https; the address is checked again on every send so a host name cannot be pointed at our own network. Keys are limited to 120 requests a minute.
+
+## Online payments (Stripe)
+
+- Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` to turn them on. In the Stripe dashboard add a webhook to `https://<your domain>/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `charge.refunded`. Turn on the payment methods you want (cards, Apple Pay, Google Pay) under Settings → Payment methods.
+- Once an order is confirmed with a final price, its tracking page shows "Pay €…". After the invoice is issued, the button asks for what is still open on the invoice. The invoice email links to the same page.
+- Payment goes through Stripe Checkout. The webhook books the payment once (repeated events are ignored), counts it towards the open invoice, and messages the customer with Stripe's receipt link. A full refund in Stripe marks the payment refunded and reopens the amount; partial refunds are only written to the audit log for the office to handle.
+- Card payments show on the admin order page with a link to the payment in Stripe.
+
+## Business customers (B2B portal)
+
+- Admin → Customers lists dealers, garages, insurers and leasing companies. Each company has its billing details, payment terms, contract prices and portal logins. Demo after seeding: `dealer@example.com` / `portal-demo-password`.
+- Contract prices replace the list price for that company: a base fee and/or a price per km (net), or a discount in percent, per service and optionally per vehicle type, with a validity period. Night, weekend and other surcharges still apply.
+- Portal users log in at `/admin/login` and land on `/portal`. There they see their company's open and finished orders with status, inspection photos and the tracking link to pass on, send new transport requests (priced with their contract, with their own reference number), download their invoices as PDF, and see their prices. They never see other customers' data or the office screens.
+- Companies with "One invoice per month" get one invoice for all orders delivered in a month: on the company page an accountant picks the month and creates a draft, with one line per order and the customer's reference, then issues it as usual.
+- Deactivating a company or a portal login signs those users out at once.
+
+## WhatsApp Business
+
+1. In Meta Business Manager create a WhatsApp Business account and a phone number, and a system user with a permanent token (`whatsapp_business_messaging`). Set `WHATSAPP_PROVIDER=meta`, `WHATSAPP_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID`.
+2. In WhatsApp Manager create one template named `order_update` (category Utility) in Albanian, English and German, each with two body variables:
+   - sq: `Përditësim për porosinë {{1}}: {{2}}`
+   - en: `Update on your order {{1}}: {{2}}`
+   - de: `Neuigkeit zu Ihrem Auftrag {{1}}: {{2}}`
+
+   `{{1}}` is the order number and `{{2}}` the same text the SMS would have. A different template name goes in `WHATSAPP_TEMPLATE`.
+3. In the Meta app add the webhook `https://<your domain>/api/whatsapp/webhook`, with the verify token from `WHATSAPP_VERIFY_TOKEN`, subscribe it to `messages`, and set `WHATSAPP_APP_SECRET` to the app secret.
+
+Customers who chose WhatsApp then get their messages there. If Meta answers that a number cannot get WhatsApp, the same text goes out by SMS at once; if it reports a failed delivery later through the webhook, an SMS is queued once. Customer replies on WhatsApp are not read by the app yet; answer them in the WhatsApp Business app.
+
 ## Deployment
 
-**Vercel (recommended):** import the repo, add the environment variables from `.env.example`, use a Neon
-Postgres database in an EU region, and run `npx prisma migrate deploy` as part of the build command.
+**Vercel (recommended):** import the repo and add the environment variables from `.env.example` before the
+first build (the build reads the database). `vercel.json` runs `prisma migrate deploy` before `next build`, so new
+migrations are applied on every deploy. `NEXT_PUBLIC_SITE_URL` is built into the pages: change it and redeploy when
+the domain changes. Without Resend/Infobip keys set `NOTIFY_DRY_RUN=1`, or every message is marked failed.
+
+**Supabase as the database:** the app talks to Postgres directly (Prisma), so it needs the database
+connection strings, not the Supabase API keys. In Supabase → Connect take the *Transaction pooler* URI (port 6543)
+for `DATABASE_URL` and the *Session pooler* URI (port 5432) for `DIRECT_URL`, each with the database password.
+For a new project, either run `npx prisma migrate deploy` with those set, or paste the output of
+`node scripts/setup-sql.mjs` into the SQL Editor (it also fills Prisma's migration history, so later deploys only
+add new migrations). Row level security is switched on for every table so Supabase's public Data API cannot read
+them; the app is unaffected. A table added by a later migration needs `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`
+in that migration. Pick an EU region for the project.
 
 **Docker:** `docker build -t autobartje .` then run with the same environment variables. The container applies
 pending migrations on start.
@@ -75,5 +176,5 @@ pending migrations on start.
 ## Phase plan
 
 1. **MVP**: public site, quote calculator, booking, notifications, admin (orders, dispatch, fleet, pricing), invoicing, i18n.
-2. Driver PWA with inspections, order tracking page, online payments, B2B portal.
-3. Live GPS, advanced analytics, partner API.
+2. **Done**: driver PWA with inspections, order tracking page, online payments (Stripe), B2B portal, WhatsApp Business API.
+3. **Done**: live GPS, reports, partner API.

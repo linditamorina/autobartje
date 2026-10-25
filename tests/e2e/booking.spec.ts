@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+// Stand-in for Cloudflare's widget so the tests don't need the network. It answers with
+// Cloudflare's dummy token after a short delay, like the real widget with the test site key.
+test.beforeEach(async ({ page }) => {
+  await page.route("https://challenges.cloudflare.com/turnstile/**", (route) =>
+    route.fulfill({
+      contentType: "text/javascript",
+      body: `window.turnstile = { render(el, o) { setTimeout(() => o.callback("XXXX.DUMMY.TOKEN.XXXX"), 300); return "w"; }, remove() {} };`,
+    }),
+  );
+});
+
 test.describe("quote calculator", () => {
   test.use({ geolocation: { latitude: 42.6655, longitude: 20.3123 }, permissions: ["geolocation"] });
 
@@ -59,7 +70,8 @@ test.describe("booking wizard", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByText("Enter a valid phone number")).toBeVisible();
     // A fresh number per run: bookings are rate-limited per phone.
-    await page.getByLabel("Phone number").fill(`044 ${100000 + Math.floor(Math.random() * 899999)}`);
+    const phone = `044 ${100000 + Math.floor(Math.random() * 899999)}`;
+    await page.getByLabel("Phone number").fill(phone);
     await page.getByLabel("WhatsApp").check();
     await page.getByRole("button", { name: "Continue" }).click();
 
@@ -74,6 +86,25 @@ test.describe("booking wizard", () => {
 
     await expect(page).toHaveURL(/\/en\/book\/done\?order=P-\d{4}-\d{5}/);
     await expect(page.getByTestId("order-number")).toHaveText(/^P-\d{4}-\d{5}$/);
+    const number = (await page.getByTestId("order-number").textContent())!.trim();
+
+    // Tracking page from the confirmation
+    await page.getByRole("link", { name: "Track your order" }).click();
+    await expect(page).toHaveURL(/\/en\/track\/[a-f0-9]{64}$/);
+    const trackUrl = page.url();
+    await expect(page.getByRole("heading", { name: `Order ${number}` })).toBeVisible();
+    await expect(page.locator('[aria-current="step"]')).toContainText("Request received");
+    await expect(page.getByText("Volkswagen")).toHaveCount(0);
+
+    // ... and by order number + phone
+    await page.goto("/en/track");
+    await page.getByLabel("Order number").fill(number);
+    await page.getByLabel("Phone number").fill("044 000 001");
+    await page.getByRole("button", { name: "Show my order" }).click();
+    await expect(page.getByText(/could not find an order/)).toBeVisible();
+    await page.getByLabel("Phone number").fill(phone);
+    await page.getByRole("button", { name: "Show my order" }).click();
+    await expect(page).toHaveURL(trackUrl);
   });
 
   test("keeps progress after a reload (autosave)", async ({ page }) => {

@@ -4,7 +4,8 @@ export interface LineInput {
   description: string;
   quantity: number; // up to 2 decimals
   unit?: string;
-  unitPriceCents: number; // net
+  /** Net, or VAT-inclusive when the invoice is priced with VAT included. */
+  unitPriceCents: number;
   vatRateBp?: number;
 }
 
@@ -27,18 +28,31 @@ export interface InvoiceTotals {
 /**
  * VAT is calculated per line and rounded per line, so the printed lines always
  * add up to the printed totals.
+ *
+ * With `pricesIncludeVat` (prices agreed with private customers), each line's
+ * gross is fixed and VAT is taken out of it (gross × 18/118), so a €45 price is
+ * invoiced as exactly €45.00 – computing VAT on a rounded net could give €45.01.
  */
-export function calculateInvoice(inputs: LineInput[]): InvoiceTotals {
+export function calculateInvoice(inputs: LineInput[], opts: { pricesIncludeVat?: boolean } = {}): InvoiceTotals {
   const lines = inputs.map((l, i): CalculatedLine => {
     if (!Number.isFinite(l.quantity) || l.quantity <= 0) throw new Error(`Line ${i + 1}: quantity must be positive`);
     if (!Number.isInteger(l.unitPriceCents)) throw new Error(`Line ${i + 1}: unit price must be whole cents`);
     const vatRateBp = l.vatRateBp ?? VAT_RATE_BP;
-    const netCents = Math.round(round2(l.quantity) * l.unitPriceCents);
-    const vatCents = applyBp(netCents, vatRateBp);
+    const quantity = round2(l.quantity);
+    let netCents: number;
+    let vatCents: number;
+    if (opts.pricesIncludeVat) {
+      const grossCents = Math.round(quantity * l.unitPriceCents);
+      netCents = netFromGross(grossCents, vatRateBp);
+      vatCents = grossCents - netCents;
+    } else {
+      netCents = Math.round(quantity * l.unitPriceCents);
+      vatCents = applyBp(netCents, vatRateBp);
+    }
     return {
       position: i + 1,
       description: l.description.trim(),
-      quantity: round2(l.quantity),
+      quantity,
       unit: l.unit ?? "copë",
       unitPriceCents: l.unitPriceCents,
       vatRateBp,
